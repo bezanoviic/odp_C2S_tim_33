@@ -6,6 +6,8 @@ export interface GameDto {
   max_players_per_team: number;
   created_at: string;
   active_tournaments_count: number;
+  available_tournaments: { id: number; name: string }[];
+  tournaments: { id: number; name: string; status: string }[];
 }
 
 export interface CreateGameDto {

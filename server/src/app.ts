@@ -76,14 +76,14 @@ app.use("/api/v1", new AuthController(authService).getRouter());
 app.use("/api/v1", new UserController(userService).getRouter());
 
 app.post("/api/v1/teams", authenticate, (req, res) => teamController.createTeam(req, res));
-app.get("/api/v1/teams/:id/members", authenticate, (req, res) => teamController.getTeamMembers(req, res));
+app.use("/api/v1", new TournamentController(tournamentService, auditService).getRouter());
 
 app.get("/api/v1/teams", authenticate, (req, res) => teamController.getMyTeams(req, res));
 app.get("/api/v1/teams/invitations/my", authenticate, (req, res) => teamController.getMyInvitations(req, res));
 app.get("/api/v1/teams/:id", authenticate, (req, res) => teamController.getTeam(req, res));
 app.delete("/api/v1/teams/:id", authenticate, (req, res) => teamController.deleteTeam(req, res));
 
-app.use("/api/v1", new TournamentController(tournamentService).getRouter());
+new TournamentController(tournamentService, auditService).getRouter();
 app.use("/api/v1", new MatchController(matchService).getRouter());
 //app.use("/api/v1", new GameController(gameService).getRouter());
 //app.use("/api/v1", new TeamController(teamService).getRouter());

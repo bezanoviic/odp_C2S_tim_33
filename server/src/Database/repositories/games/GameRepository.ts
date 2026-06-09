@@ -13,6 +13,20 @@ export class GameRepository implements IGameRepository {
   ) {}
 
   private map(r: RowDataPacket): GameDto {
+    const parseTournaments = (value: unknown): { id: number; name: string; status: string }[] =>
+      value
+      ? String(value)
+          .split("||")
+          .filter(Boolean)
+          .map((item) => {
+            const [id, status, ...nameParts] = item.split(":");
+            return { id: Number(id), status, name: nameParts.join(":") };
+          })
+          .filter((tournament) => Number.isInteger(tournament.id) && tournament.name.length > 0 && tournament.status.length > 0)
+      : [];
+    const availableTournaments = parseTournaments(r.available_tournaments).map(({ id, name }) => ({ id, name }));
+    const tournaments = parseTournaments(r.tournaments);
+
     return new GameDto(
       r.id,
       r.name,
@@ -21,18 +35,33 @@ export class GameRepository implements IGameRepository {
       r.max_players_per_team,
       new Date(r.created_at),
       r.active_tournaments_count ?? 0,
+      availableTournaments,
+      tournaments,
     );
   }
 
   async findAll(): Promise<GameDto[]> {
-    const res = await this.db.getReadConnection();
+    const res = await this.db.getMasterConnection();
     if (!res) return [];
     try {
       const [rows] = await res.conn.execute<RowDataPacket[]>(
-        `SELECT g.*, COUNT(t.id) as active_tournaments_count
+        `SELECT g.*,
+                (
+                  SELECT COUNT(*)
+                  FROM tournaments t
+                  WHERE t.game_id = g.id AND t.status = 'upcoming'
+                ) as active_tournaments_count,
+                (
+                  SELECT GROUP_CONCAT(CONCAT(t.id, ':', t.status, ':', t.name) ORDER BY t.start_date ASC SEPARATOR '||')
+                  FROM tournaments t
+                  WHERE t.game_id = g.id AND t.status = 'upcoming'
+                ) as available_tournaments,
+                (
+                  SELECT GROUP_CONCAT(CONCAT(t.id, ':', t.status, ':', t.name) ORDER BY t.start_date ASC SEPARATOR '||')
+                  FROM tournaments t
+                  WHERE t.game_id = g.id
+                ) as tournaments
          FROM games g
-         LEFT JOIN tournaments t ON t.game_id = g.id AND t.status NOT IN ('completed','cancelled')
-         GROUP BY g.id
          ORDER BY g.name ASC`,
       );
       return rows.map((r) => this.map(r));
@@ -43,15 +72,28 @@ export class GameRepository implements IGameRepository {
   }
 
   async findById(id: number): Promise<GameDto | null> {
-    const res = await this.db.getReadConnection();
+    const res = await this.db.getMasterConnection();
     if (!res) return null;
     try {
       const [rows] = await res.conn.execute<RowDataPacket[]>(
-        `SELECT g.*, COUNT(t.id) as active_tournaments_count
+        `SELECT g.*,
+                (
+                  SELECT COUNT(*)
+                  FROM tournaments t
+                  WHERE t.game_id = g.id AND t.status = 'upcoming'
+                ) as active_tournaments_count,
+                (
+                  SELECT GROUP_CONCAT(CONCAT(t.id, ':', t.status, ':', t.name) ORDER BY t.start_date ASC SEPARATOR '||')
+                  FROM tournaments t
+                  WHERE t.game_id = g.id AND t.status = 'upcoming'
+                ) as available_tournaments,
+                (
+                  SELECT GROUP_CONCAT(CONCAT(t.id, ':', t.status, ':', t.name) ORDER BY t.start_date ASC SEPARATOR '||')
+                  FROM tournaments t
+                  WHERE t.game_id = g.id
+                ) as tournaments
          FROM games g
-         LEFT JOIN tournaments t ON t.game_id = g.id AND t.status NOT IN ('completed','cancelled')
-         WHERE g.id = ?
-         GROUP BY g.id`,
+         WHERE g.id = ?`,
         [id],
       );
       return rows.length > 0 ? this.map(rows[0]) : null;

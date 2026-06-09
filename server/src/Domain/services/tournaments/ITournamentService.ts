@@ -12,7 +12,7 @@ export interface ITournamentService {
   watch(userId: number, tournamentId: number): Promise<boolean>;
   unwatch(userId: number, tournamentId: number): Promise<boolean>;
   getWatchlist(userId: number): Promise<TournamentDto[]>;
-  register(tournamentId: number, teamId: number): Promise<boolean>;
+  register(tournamentId: number, teamId: number): Promise<{ ok: boolean; statusCode: number; message: string }>;
   unregister(tournamentId: number, teamId: number): Promise<boolean>;
   getRegistrations(tournamentId: number): Promise<{ team_id: number; status: string; registered_at: Date }[]>;
   updateRegistrationStatus(tournamentId: number, teamId: number, status: string): Promise<boolean>;

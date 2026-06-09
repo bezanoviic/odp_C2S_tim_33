@@ -21,6 +21,7 @@ export class MatchService implements IMatchService {
 
   async generateBracket(tournamentId: number): Promise<MatchDto[]> {
     const teamIds = await this.matchRepo.findApprovedTeamIdsByTournamentId(tournamentId);
+    console.log("[DEBUG] generateBracket tournamentId=", tournamentId, "teamIds=", teamIds);
 
     if (teamIds.length < 2) {
       return [];

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TeamsAPIService } from "../api_services/teams/TeamsAPIService";
 import type { TeamDto } from "../models/team/TeamTypes";
+import { StatusBadge } from "../components/ui/UI";
 
 type Invitation = {
   id: number;
@@ -103,7 +104,7 @@ export default function TeamsPage() {
                     <span style={{ ...styles.badge, background: "linear-gradient(135deg, rgba(255,40,120,0.4), rgba(255,40,120,0.2))", color: "#ffb3cc" }}>
                       {inv.team_tag}
                     </span>
-                    <span style={styles.teamId}>#{inv.team_id}</span>
+                    <StatusBadge status="pending" />
                   </div>
                   <h3 style={styles.teamName}>{inv.team_name}</h3>
                   <p style={styles.teamDescription}>
@@ -214,7 +215,6 @@ export default function TeamsPage() {
     </main>
   );
 }
-
 const styles = {
   page: {
     minHeight: "100vh",
@@ -239,7 +239,7 @@ const styles = {
     marginBottom: "30px"
   },
   eyebrow: {
-    color: "#a5b4fc",
+    color: "#ff2878",
     textTransform: "uppercase" as const,
     letterSpacing: "0.18em",
     fontWeight: 900,
@@ -250,7 +250,7 @@ const styles = {
     fontWeight: 950,
     lineHeight: 0.95,
     margin: 0,
-    background: "linear-gradient(135deg, #ffffff, #a5b4fc, #38bdf8)",
+    background: "linear-gradient(135deg, #ffffff, #ff2878, #ff6ba8)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent"
   },
@@ -265,8 +265,8 @@ const styles = {
     minWidth: "180px",
     padding: "28px",
     borderRadius: "28px",
-    background: "rgba(255,255,255,0.1)",
-    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(255,40,120,0.1)",
+    border: "1px solid rgba(255,40,120,0.18)",
     textAlign: "center" as const
   },
   statNumber: {
@@ -283,7 +283,7 @@ const styles = {
     padding: "34px",
     borderRadius: "30px",
     background: "rgba(15, 23, 42, 0.78)",
-    border: "1px solid rgba(255,255,255,0.14)",
+    border: "1px solid rgba(255,40,120,0.14)",
     marginBottom: "38px"
   },
   cardTitle: {
@@ -308,7 +308,7 @@ const styles = {
     marginTop: "9px",
     padding: "15px 16px",
     borderRadius: "16px",
-    border: "1px solid rgba(255,255,255,0.18)",
+    border: "1px solid rgba(255,40,120,0.18)",
     background: "rgba(255,255,255,0.09)",
     color: "#f8fafc",
     outline: "none",
@@ -321,7 +321,7 @@ const styles = {
     marginTop: "9px",
     padding: "15px 16px",
     borderRadius: "16px",
-    border: "1px solid rgba(255,255,255,0.18)",
+    border: "1px solid rgba(255,40,120,0.18)",
     background: "rgba(255,255,255,0.09)",
     color: "#f8fafc",
     outline: "none",
@@ -332,7 +332,7 @@ const styles = {
     border: 0,
     borderRadius: "999px",
     padding: "15px 30px",
-    background: "linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4)",
+    background: "linear-gradient(135deg, #ff2878, #ff6ba8)",
     color: "white",
     fontWeight: 900,
     fontSize: "15px"
@@ -353,7 +353,7 @@ const styles = {
     padding: "26px",
     borderRadius: "28px",
     background: "linear-gradient(145deg, rgba(30,41,59,0.96), rgba(15,23,42,0.96))",
-    border: "1px solid rgba(255,255,255,0.1)"
+    border: "1px solid rgba(255,40,120,0.1)"
   },
   teamHeader: {
     display: "flex",
@@ -364,8 +364,8 @@ const styles = {
   badge: {
     padding: "7px 12px",
     borderRadius: "999px",
-    background: "linear-gradient(135deg, rgba(139,92,246,0.45), rgba(59,130,246,0.35))",
-    color: "#e0e7ff",
+    background: "linear-gradient(135deg, rgba(255,40,120,0.45), rgba(255,107,168,0.35))",
+    color: "#ffb3cc",
     fontWeight: 900
   },
   teamId: {
@@ -394,7 +394,7 @@ const styles = {
     border: 0,
     borderRadius: "999px",
     padding: "12px 18px",
-    background: "linear-gradient(135deg, #22d3ee, #6366f1)",
+    background: "linear-gradient(135deg, #ff2878, #ff6ba8)",
     color: "white",
     fontWeight: 900,
     cursor: "pointer"
@@ -403,7 +403,7 @@ const styles = {
     padding: "34px",
     borderRadius: "28px",
     background: "rgba(255,255,255,0.08)",
-    border: "1px dashed rgba(255,255,255,0.22)",
+    border: "1px dashed rgba(255,40,120,0.22)",
     color: "#cbd5e1",
     textAlign: "center" as const
   },

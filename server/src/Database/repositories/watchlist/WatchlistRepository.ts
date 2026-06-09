@@ -28,11 +28,11 @@ export class WatchlistRepository implements IWatchlistRepository {
     const res = await this.db.getWriteConnection();
     if (!res) return false;
     try {
-      const [result] = await res.conn.execute<ResultSetHeader>(
+      await res.conn.execute<ResultSetHeader>(
         `DELETE FROM user_watchlist WHERE user_id = ? AND tournament_id = ?`,
         [userId, tournamentId]
       );
-      return result.affectedRows > 0;
+      return true;
     } catch (err) {
       this.logger.error("WatchlistRepository", "remove failed", err);
       return false;
@@ -40,7 +40,7 @@ export class WatchlistRepository implements IWatchlistRepository {
   }
 
   async findByUserId(userId: number): Promise<number[]> {
-    const res = await this.db.getReadConnection();
+    const res = await this.db.getMasterConnection();
     if (!res) return [];
     try {
       const [rows] = await res.conn.execute<RowDataPacket[]>(
@@ -55,7 +55,7 @@ export class WatchlistRepository implements IWatchlistRepository {
   }
 
   async exists(userId: number, tournamentId: number): Promise<boolean> {
-    const res = await this.db.getReadConnection();
+    const res = await this.db.getMasterConnection();
     if (!res) return false;
     try {
       const [rows] = await res.conn.execute<RowDataPacket[]>(

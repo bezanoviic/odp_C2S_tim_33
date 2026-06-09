@@ -41,8 +41,13 @@ export class TeamsAPIService {
     try {
       const response = await axios.post<{ teamId: number }>(API_URL, payload, getAuthHeaders());
       return { success: true, data: response.data.teamId };
-    } catch {
-      return { success: false, message: "Failed to create team" };
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? (error.response?.data as { error?: string; message?: string } | undefined)?.error
+          ?? (error.response?.data as { error?: string; message?: string } | undefined)?.message
+          ?? "Failed to create team"
+        : "Failed to create team";
+      return { success: false, message };
     }
   }
 

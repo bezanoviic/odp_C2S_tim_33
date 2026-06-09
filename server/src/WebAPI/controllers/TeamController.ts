@@ -62,9 +62,16 @@ export class TeamController {
       return;
     }
 
+    const normalizedTag = tag.trim().toUpperCase();
+    const existingTeam = await this.service.getTeamByTag(normalizedTag);
+    if (existingTeam) {
+      res.status(409).json({ error: "Team tag is already taken" });
+      return;
+    }
+
     const teamId = await this.service.createTeam(
       name.trim(),
-      tag.trim(),
+      normalizedTag,
       normalizedDescription,
       userId
     );

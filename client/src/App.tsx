@@ -17,6 +17,7 @@ import TournamentDetailsPage from "./pages/TournamentDetailsPage";
 import AdminGamesPage from "./pages/admin/AdminGamesPage";
 import AdminHealthPage from "./pages/admin/AdminHealthPage";
 import AdminAuditPage from "./pages/admin/AdminAuditPage";
+import AdminEditTournamentPage from "./pages/admin/AdminEditTournamentPage";
 import GamesPage from "./pages/GamesPage";
 import TournamentsPage from "./pages/TournamentsPage";
 import AdminTournamentCreatePage from "./pages/admin/AdminTournamentCreatePage";
@@ -46,13 +47,14 @@ export default function App() {
         </ProtectedRoute>
       } />
       <Route path="/tournaments/:id/bracket" element={
-        <ProtectedRoute requiredRole="player">
+        <ProtectedRoute>
           <TournamentBracketPage />
         </ProtectedRoute>
       } />
+      
 
       <Route path="/matches/:id" element={
-        <ProtectedRoute requiredRole="player">
+        <ProtectedRoute>
           <MatchDetailsPage />
         </ProtectedRoute>
       } />
@@ -83,15 +85,20 @@ export default function App() {
       <Route path="/admin/health"          element={<ProtectedRoute requiredRole="admin"><AdminHealthPage /></ProtectedRoute>} />
       <Route path="/admin/audit"           element={<ProtectedRoute requiredRole="admin"><AdminAuditPage /></ProtectedRoute>} />
       <Route path="/admin/tournaments/new" element={<ProtectedRoute requiredRole="admin"><AdminTournamentCreatePage /></ProtectedRoute>} />
+      <Route path="/admin/tournaments/:id/edit" element={
+  <ProtectedRoute requiredRole="admin">
+    <AdminEditTournamentPage />
+  </ProtectedRoute>
+} />
 
       {/* Teams */}
       <Route path="/teams" element={
-        <ProtectedRoute requiredRole="player">
+        <ProtectedRoute>
           <TeamsPage />
         </ProtectedRoute>
       } />
       <Route path="/teams/:id" element={
-        <ProtectedRoute requiredRole="player">
+        <ProtectedRoute>
           <TeamDetailsPage />
         </ProtectedRoute>
       } />

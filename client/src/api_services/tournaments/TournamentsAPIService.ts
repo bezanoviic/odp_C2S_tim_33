@@ -20,6 +20,7 @@ export interface CreateTournamentDto {
   name: string;
   game_id: number;
   format: string;
+  status?: string;
   max_teams: number;
   prize_pool?: number;
   registration_deadline: string;
@@ -64,8 +65,20 @@ export const TournamentsAPIService = {
     await axios.delete(`${API_URL}/${id}/watch`, { headers: authHeader() });
   },
 
+  async getMyWatchlist(): Promise<Tournament[]> {
+    const res = await axios.get(`${API_URL}/watchlist/me`, { headers: authHeader() });
+    return res.data.data;
+  },
+
   async register(tournamentId: number, teamId: number): Promise<void> {
-    await axios.post(`${API_URL}/${tournamentId}/register`, { team_id: teamId }, { headers: authHeader() });
+    try {
+      await axios.post(`${API_URL}/${tournamentId}/register`, { team_id: teamId }, { headers: authHeader() });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message ?? "Registration failed");
+      }
+      throw error;
+    }
   },
 
   async unregister(tournamentId: number, teamId: number): Promise<void> {

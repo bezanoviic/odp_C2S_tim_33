@@ -9,22 +9,20 @@ const err = (e: unknown, fallback: string): AuthResponse => ({
 });
 
 export const authApi: IAuthAPIService = {
-async login(gamer_tag, password) {
-  return axios.post<AuthResponse>(`${BASE}/login`, { gamer_tag, password })
-    .then((r) => {
-      const response = r.data;
-
-      if (response.success && response.data) {
-        localStorage.setItem("token", response.data);
-        localStorage.setItem("authToken", response.data);
-      }
-
-      return response;
-    })
-    .catch((e) => err(e, "Login failed"));
-},
-  async register(gamer_tag, full_name, email, password) {
-    return axios.post<AuthResponse>(`${BASE}/register`, { gamer_tag, full_name, email, password })
+  async login(gamer_tag, password) {
+    return axios.post<AuthResponse>(`${BASE}/login`, { gamer_tag, password })
+      .then((r) => {
+        const response = r.data;
+        if (response.success && response.data) {
+          localStorage.setItem("token", response.data);
+          localStorage.setItem("authToken", response.data);
+        }
+        return response;
+      })
+      .catch((e) => err(e, "Login failed"));
+  },
+  async register(gamer_tag, full_name, email, password, profile_image) {
+    return axios.post<AuthResponse>(`${BASE}/register`, { gamer_tag, full_name, email, password, profile_image })
       .then(r => r.data).catch(e => err(e, "Registration failed"));
   },
 };

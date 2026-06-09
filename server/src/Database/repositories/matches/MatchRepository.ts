@@ -40,6 +40,7 @@ export class MatchRepository implements IMatchRepository {
       row.team_id,
       row.user_id,
       row.created_at,
+      row.performance_notes ?? null,
     );
   }
 
@@ -87,14 +88,14 @@ export class MatchRepository implements IMatchRepository {
   }
 
   async findApprovedTeamIdsByTournamentId(tournamentId: number): Promise<number[]> {
-    const res = await this.db.getReadConnection();
+    const res = await this.db.getMasterConnection();
     if (!res) return [];
 
     try {
       const [rows] = await res.conn.execute<RowDataPacket[]>(
         `SELECT team_id
          FROM tournament_registrations
-         WHERE tournament_id = ? AND status = 'approved'
+         WHERE tournament_id = ? AND status = 'confirmed'
          ORDER BY registered_at ASC`,
         [tournamentId],
       );
@@ -127,10 +128,13 @@ export class MatchRepository implements IMatchRepository {
         ],
       );
 
-      const created = await this.findById(result.insertId);
-      if (!created) throw new Error("Failed to fetch created match");
+      const [rows] = await res.conn.execute<RowDataPacket[]>(
+        `SELECT * FROM matches WHERE id = ?`,
+        [result.insertId],
+      );
+      if (rows.length === 0) throw new Error("Failed to fetch created match");
 
-      return created;
+      return this.mapMatch(rows[0]);
     } catch (err) {
       this.logger.error("MatchRepository", "create failed", err);
       throw err;
@@ -213,14 +217,14 @@ export class MatchRepository implements IMatchRepository {
 
     try {
       await res.conn.execute<ResultSetHeader>(
-        `INSERT INTO match_players (match_id, team_id, user_id)
-         VALUES (?, ?, ?)
-         ON DUPLICATE KEY UPDATE team_id = VALUES(team_id)`,
-        [matchId, dto.team_id, dto.user_id],
+        `INSERT INTO match_players (match_id, team_id, user_id, performance_notes)
+         VALUES (?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE team_id = VALUES(team_id), performance_notes = VALUES(performance_notes)`,
+        [matchId, dto.team_id, dto.user_id, dto.performance_notes ?? null],
       );
 
       const [rows] = await res.conn.execute<RowDataPacket[]>(
-        `SELECT match_id, team_id, user_id, created_at
+        `SELECT match_id, team_id, user_id, performance_notes, created_at
          FROM match_players
          WHERE match_id = ? AND user_id = ?`,
         [matchId, dto.user_id],
@@ -246,15 +250,15 @@ export class MatchRepository implements IMatchRepository {
     try {
       const [result] = await res.conn.execute<ResultSetHeader>(
         `UPDATE match_players
-         SET team_id = ?
+         SET team_id = ?, performance_notes = ?
          WHERE match_id = ? AND user_id = ?`,
-        [dto.team_id, matchId, userId],
+        [dto.team_id, dto.performance_notes ?? null, matchId, userId],
       );
 
       if (result.affectedRows === 0) return null;
 
       const [rows] = await res.conn.execute<RowDataPacket[]>(
-        `SELECT match_id, team_id, user_id, created_at
+        `SELECT match_id, team_id, user_id, performance_notes, created_at
          FROM match_players
          WHERE match_id = ? AND user_id = ?`,
         [matchId, userId],
@@ -295,7 +299,7 @@ export class MatchRepository implements IMatchRepository {
 
     try {
       const [rows] = await res.conn.execute<RowDataPacket[]>(
-        `SELECT match_id, team_id, user_id, created_at
+        `SELECT match_id, team_id, user_id, performance_notes, created_at
          FROM match_players
          WHERE match_id = ?
          ORDER BY team_id ASC, user_id ASC`,

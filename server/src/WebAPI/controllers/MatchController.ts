@@ -9,6 +9,7 @@ export class MatchController {
   private readonly router = Router();
 
   public constructor(private readonly matchService: IMatchService) {
+    this.router.get("/matches/:id/players", authenticate, this.getPlayers.bind(this));
     this.router.get("/matches/:id", authenticate, this.getById.bind(this));
     this.router.get("/tournaments/:id/matches", authenticate, this.getByTournamentId.bind(this));
 
@@ -67,6 +68,18 @@ export class MatchController {
     res.status(200).json({ success: true, data });
   }
 
+  private async getPlayers(req: Request, res: Response): Promise<void> {
+    const matchId = parseInt(req.params.id as string, 10);
+
+    if (isNaN(matchId)) {
+      res.status(400).json({ success: false, message: "Invalid match id" });
+      return;
+    }
+
+    const data = await this.matchService.getPlayers(matchId);
+    res.status(200).json({ success: true, data });
+  }
+
   private async getByTournamentId(req: Request, res: Response): Promise<void> {
     const tournamentId = parseInt(req.params.id as string, 10);
 
@@ -92,7 +105,7 @@ export class MatchController {
     if (data.length === 0) {
       res.status(400).json({
         success: false,
-        message: "Not enough approved teams to generate bracket",
+        message: "Not enough confirmed teams to generate bracket",
       });
       return;
     }

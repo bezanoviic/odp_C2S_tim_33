@@ -108,9 +108,7 @@ export class DbManager {
   }
 
   /** All reads (SELECT) → Round-Robin slaves, fallback to Master */
- public async getReadConnection(): Promise<{ conn: PoolConnection; nodeName: string } | null> {
-    return this.getWriteConnection();
-
+  public async getReadConnection(): Promise<{ conn: PoolConnection; nodeName: string } | null> {
     const n = this.slaves.length;
     for (let i = 0; i < n; i++) {
       const idx = (this.slaveRrIndex + i) % n;
@@ -129,8 +127,12 @@ export class DbManager {
     }
     // Fallback to master
     this.logger.warn("DB", "All slaves offline — falling back to master for read");
+    return this.getMasterConnection();
+  }
+
+  public async getMasterConnection(): Promise<{ conn: PoolConnection; nodeName: string } | null> {
     if (this.master.node.status === NodeStatus.OFFLINE) {
-      this.logger.error("DB", "Master also offline — read not possible");
+      this.logger.error("DB", "Master is OFFLINE — read not possible");
       return null;
     }
     try {
@@ -139,6 +141,7 @@ export class DbManager {
       return { conn, nodeName: this.master.name };
     } catch (err) {
       this.master.node.status = NodeStatus.OFFLINE;
+      this.master.node.failedWrites++;
       this.logger.error("DB", "Failed to connect to master for fallback read", err);
       return null;
     }

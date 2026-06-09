@@ -23,6 +23,10 @@ export class TeamService {
     return this.repo.getTeamById(teamId);
   }
 
+  async getTeamByTag(tag: string): Promise<RowDataPacket | null> {
+    return this.repo.getTeamByTag(tag);
+  }
+
   async deleteTeam(teamId: number, userId: number): Promise<boolean> {
     const isCaptain = await this.repo.isCaptain(teamId, userId);
 

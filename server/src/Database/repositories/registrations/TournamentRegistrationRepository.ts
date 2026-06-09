@@ -40,7 +40,7 @@ export class TournamentRegistrationRepository implements ITournamentRegistration
   }
 
   async findByTournamentId(tournamentId: number): Promise<{ team_id: number; status: string; registered_at: Date }[]> {
-    const res = await this.db.getReadConnection();
+    const res = await this.db.getMasterConnection();
     if (!res) return [];
     try {
       const [rows] = await res.conn.execute<RowDataPacket[]>(
@@ -55,7 +55,7 @@ export class TournamentRegistrationRepository implements ITournamentRegistration
   }
 
   async exists(tournamentId: number, teamId: number): Promise<boolean> {
-    const res = await this.db.getReadConnection();
+    const res = await this.db.getMasterConnection();
     if (!res) return false;
     try {
       const [rows] = await res.conn.execute<RowDataPacket[]>(
@@ -66,6 +66,32 @@ export class TournamentRegistrationRepository implements ITournamentRegistration
     } catch (err) {
       this.logger.error("TournamentRegistrationRepository", "exists failed", err);
       return false;
+    } finally { res.conn.release(); }
+  }
+
+  async getTeamMemberRequirement(tournamentId: number, teamId: number): Promise<{ memberCount: number; requiredMembers: number } | null> {
+    const res = await this.db.getMasterConnection();
+    if (!res) return null;
+    try {
+      const [rows] = await res.conn.execute<RowDataPacket[]>(
+        `SELECT COUNT(tm.user_id) AS member_count,
+                g.max_players_per_team AS required_members
+         FROM tournaments t
+         JOIN games g ON g.id = t.game_id
+         JOIN teams selected_team ON selected_team.id = ?
+         LEFT JOIN team_members tm ON tm.team_id = selected_team.id
+         WHERE t.id = ?
+         GROUP BY g.max_players_per_team`,
+        [teamId, tournamentId]
+      );
+      if (rows.length === 0) return null;
+      return {
+        memberCount: Number(rows[0].member_count),
+        requiredMembers: Number(rows[0].required_members),
+      };
+    } catch (err) {
+      this.logger.error("TournamentRegistrationRepository", "getTeamMemberRequirement failed", err);
+      return null;
     } finally { res.conn.release(); }
   }
 

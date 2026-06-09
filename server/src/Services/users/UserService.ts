@@ -16,6 +16,27 @@ export class UserService implements IUserService {
     return new UserDto(u.id, u.gamer_tag, u.full_name, u.email, u.role, u.profile_image);
   }
 
+  async searchByGamerTag(query: string): Promise<UserDto[]> {
+    const users = await this.userRepo.searchByGamerTag(query);
+    return users.map((u) => new UserDto(u.id, u.gamer_tag, u.full_name, u.email, u.role, u.profile_image));
+  }
+
+  async findByGamerTag(gamer_tag: string): Promise<UserDto | null> {
+    const u = await this.userRepo.findByGamerTag(gamer_tag);
+    if (u.id === 0) return null;
+    return new UserDto(u.id, u.gamer_tag, u.full_name, u.email, u.role, u.profile_image);
+  }
+
+  async findByEmail(email: string): Promise<UserDto | null> {
+    const u = await this.userRepo.findByEmail(email);
+    if (u.id === 0) return null;
+    return new UserDto(u.id, u.gamer_tag, u.full_name, u.email, u.role, u.profile_image);
+  }
+
+  updateProfile(id: number, data: { full_name?: string; profile_image?: string | null; gamer_tag?: string; email?: string }): Promise<boolean> {
+    return this.userRepo.updateProfile(id, data);
+  }
+
   changeRole(id: number, role: string): Promise<boolean> {
     return this.userRepo.changeRole(id, role);
   }

@@ -32,12 +32,8 @@ export class TournamentService implements ITournamentService {
   }
 
   async create(dto: CreateTournamentDto): Promise<TournamentDto | null> {
-    try {
-      const t = await this.tournamentRepo.create(dto);
-      return this.toDto(t);
-    } catch {
-      return null;
-    }
+    const t = await this.tournamentRepo.create(dto);
+    return this.toDto(t);
   }
 
   async update(id: number, dto: Partial<CreateTournamentDto>): Promise<TournamentDto | null> {
@@ -67,8 +63,31 @@ async getWatchlist(userId: number): Promise<TournamentDto[]> {
     .map((t) => this.toDto(t));
 }
 
-async register(tournamentId: number, teamId: number): Promise<boolean> {
-  return this.registrationRepo.register(tournamentId, teamId);
+async register(tournamentId: number, teamId: number): Promise<{ ok: boolean; statusCode: number; message: string }> {
+  const tournament = await this.tournamentRepo.findById(tournamentId);
+  if (!tournament) return { ok: false, statusCode: 404, message: "Tournament not found" };
+
+  if (tournament.status !== "upcoming")
+    return { ok: false, statusCode: 400, message: "Registration is only available for upcoming tournaments" };
+
+  const teamSize = await this.registrationRepo.getTeamMemberRequirement(tournamentId, teamId);
+  if (!teamSize) return { ok: false, statusCode: 404, message: "Tournament or team not found" };
+
+  if (teamSize.memberCount < teamSize.requiredMembers) {
+    return {
+      ok: false,
+      statusCode: 400,
+      message: `Team must have at least ${teamSize.requiredMembers} members to register for this tournament`,
+    };
+  }
+
+  const alreadyRegistered = await this.registrationRepo.exists(tournamentId, teamId);
+  if (alreadyRegistered) return { ok: false, statusCode: 409, message: "Team is already registered for this tournament" };
+
+  const ok = await this.registrationRepo.register(tournamentId, teamId);
+  return ok
+    ? { ok: true, statusCode: 200, message: "Registration successful" }
+    : { ok: false, statusCode: 500, message: "Registration failed" };
 }
 
 async unregister(tournamentId: number, teamId: number): Promise<boolean> {

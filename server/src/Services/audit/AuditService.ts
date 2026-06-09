@@ -9,12 +9,10 @@ export class AuditService implements IAuditService {
     page: number,
     limit: number,
   ): Promise<{ logs: AuditLogDto[]; total: number }> {
-    console.log("AuditService.getLogs called", page, limit);
     const [logs, total] = await Promise.all([
       this.auditRepo.findAll(page, limit),
       this.auditRepo.countAll(),
     ]);
-    console.log("AuditService.getLogs result", logs.length, total);
     return { logs, total };
   }
 
@@ -25,6 +23,9 @@ export class AuditService implements IAuditService {
     entity_id: number | null,
     details: string | null,
   ): Promise<void> {
-    await this.auditRepo.create(user_id, action, entity_type, entity_id, details);
+    const success = await this.auditRepo.create(user_id, action, entity_type, entity_id, details);
+    if (!success) {
+      throw new Error("Failed to write audit log");
+    }
   }
 }

@@ -1,7 +1,10 @@
 export type UserDto = {
   id: number;
-  username: string;
+  gamer_tag: string;
+  full_name: string;
   email: string;
   role: string;
-  isActive: number;
+  profile_image?: string | null;
+  created_at?: string;
+  isActive?: number | boolean;
 };

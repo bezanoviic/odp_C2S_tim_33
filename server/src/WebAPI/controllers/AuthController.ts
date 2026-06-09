@@ -4,6 +4,7 @@ import { IAuthService }     from "../../Domain/services/auth/IAuthService";
 import { ValidationResult } from "../../Domain/types/ValidationResult";
 import { validateLogin }    from "../validators/auth/validateLogin";
 import { validateRegister } from "../validators/auth/validateRegister";
+import { authenticate }     from "../../Middlewares/authentification/AuthMiddleware";
 
 export class AuthController {
   private readonly router = Router();
@@ -11,6 +12,7 @@ export class AuthController {
   public constructor(private readonly authService: IAuthService) {
     this.router.post("/auth/login",    this.login.bind(this));
     this.router.post("/auth/register", this.register.bind(this));
+    this.router.post("/auth/logout",   authenticate, this.logout.bind(this));
   }
 
   private async login(req: Request, res: Response): Promise<void> {
@@ -33,12 +35,12 @@ export class AuthController {
 
   private async register(req: Request, res: Response): Promise<void> {
     try {
-      const { gamer_tag, full_name, email, password } = req.body as {
-        gamer_tag?: string; full_name?: string; email?: string; password?: string;
+      const { gamer_tag, full_name, email, password, profile_image } = req.body as {
+        gamer_tag?: string; full_name?: string; email?: string; password?: string; profile_image?: string;
       };
       const v: ValidationResult = validateRegister(gamer_tag ?? "", full_name ?? "", email ?? "", password ?? "");
       if (!v.valid) { res.status(400).json({ success: false, message: v.message }); return; }
-      const result = await this.authService.register(gamer_tag!, full_name!, email!, "player", password!);
+      const result = await this.authService.register(gamer_tag!, full_name!, email!, "player", password!, profile_image ?? null);
       if (result.id === 0) { res.status(409).json({ success: false, message: "Gamer tag or email already taken" }); return; }
       const token = jwt.sign(
         { id: result.id, gamer_tag: result.gamer_tag, role: result.role },
@@ -49,6 +51,10 @@ export class AuthController {
     } catch (err) {
       res.status(500).json({ success: false, message: "Internal server error" });
     }
+  }
+
+  private logout(_req: Request, res: Response): void {
+    res.status(200).json({ success: true, message: "Logged out successfully" });
   }
 
   public getRouter(): Router { return this.router; }

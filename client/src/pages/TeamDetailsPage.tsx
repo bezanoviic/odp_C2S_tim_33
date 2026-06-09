@@ -349,14 +349,12 @@ export default function TeamDetailsPage() {
     </main>
   );
 }
-
 const styles = {
   page: {
     minHeight: "100vh",
     width: "100%",
     padding: "54px 22px",
-    background:
-      "radial-gradient(circle at 15% 10%, rgba(168,85,247,0.38), transparent 28%), radial-gradient(circle at 85% 20%, rgba(14,165,233,0.32), transparent 28%), radial-gradient(circle at 50% 100%, rgba(236,72,153,0.22), transparent 30%), linear-gradient(135deg, #020617 0%, #0f172a 45%, #111827 100%)",
+    background: "radial-gradient(circle at 15% 10%, rgba(255,40,120,0.18), transparent 28%), radial-gradient(circle at 85% 20%, rgba(255,107,168,0.12), transparent 28%), radial-gradient(circle at 50% 100%, rgba(255,40,120,0.12), transparent 30%), linear-gradient(135deg, #020617 0%, #0f172a 45%, #111827 100%)",
     color: "#f8fafc",
     fontFamily: "Inter, Arial, sans-serif"
   },
@@ -371,7 +369,7 @@ const styles = {
     padding: "28px",
     borderRadius: "24px",
     background: "rgba(15,23,42,0.82)",
-    border: "1px solid rgba(255,255,255,0.14)",
+    border: "1px solid rgba(255,40,120,0.14)",
     fontSize: "22px",
     fontWeight: 900
   },
@@ -380,8 +378,8 @@ const styles = {
     borderRadius: "999px",
     padding: "12px 18px",
     marginBottom: "26px",
-    background: "rgba(255,255,255,0.1)",
-    color: "#e0e7ff",
+    background: "rgba(255,40,120,0.1)",
+    color: "#ffb3cc",
     cursor: "pointer",
     fontWeight: 900
   },
@@ -396,7 +394,7 @@ const styles = {
     display: "inline-block",
     padding: "8px 14px",
     borderRadius: "999px",
-    background: "linear-gradient(135deg, #8b5cf6, #3b82f6)",
+    background: "linear-gradient(135deg, #ff2878, #ff6ba8)",
     color: "white",
     fontWeight: 900,
     letterSpacing: "0.12em",
@@ -406,7 +404,7 @@ const styles = {
     fontSize: "64px",
     lineHeight: 0.95,
     margin: 0,
-    background: "linear-gradient(135deg, #ffffff, #a5b4fc, #38bdf8)",
+    background: "linear-gradient(135deg, #ffffff, #ff2878, #ff6ba8)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent"
   },
@@ -421,8 +419,8 @@ const styles = {
     minWidth: "180px",
     padding: "28px",
     borderRadius: "28px",
-    background: "rgba(255,255,255,0.1)",
-    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(255,40,120,0.1)",
+    border: "1px solid rgba(255,40,120,0.18)",
     textAlign: "center" as const,
     boxShadow: "0 28px 80px rgba(0,0,0,0.35)",
     backdropFilter: "blur(16px)"
@@ -446,7 +444,7 @@ const styles = {
     padding: "26px",
     borderRadius: "28px",
     background: "rgba(15,23,42,0.82)",
-    border: "1px solid rgba(255,255,255,0.12)",
+    border: "1px solid rgba(255,40,120,0.12)",
     boxShadow: "0 28px 80px rgba(0,0,0,0.32)",
     backdropFilter: "blur(18px)"
   },
@@ -460,7 +458,7 @@ const styles = {
     padding: "14px 16px",
     marginBottom: "14px",
     borderRadius: "16px",
-    border: "1px solid rgba(255,255,255,0.18)",
+    border: "1px solid rgba(255,40,120,0.18)",
     background: "rgba(255,255,255,0.09)",
     color: "#f8fafc",
     outline: "none",
@@ -471,7 +469,7 @@ const styles = {
     border: 0,
     borderRadius: "999px",
     padding: "13px 18px",
-    background: "linear-gradient(135deg, #22d3ee, #6366f1)",
+    background: "linear-gradient(135deg, #ff2878, #ff6ba8)",
     color: "white",
     fontWeight: 900,
     cursor: "pointer"
@@ -512,7 +510,7 @@ const styles = {
     padding: "30px",
     borderRadius: "30px",
     background: "rgba(15,23,42,0.82)",
-    border: "1px solid rgba(255,255,255,0.12)",
+    border: "1px solid rgba(255,40,120,0.12)",
     boxShadow: "0 35px 100px rgba(0,0,0,0.42)",
     backdropFilter: "blur(20px)"
   },
@@ -533,9 +531,8 @@ const styles = {
   memberCard: {
     padding: "22px",
     borderRadius: "24px",
-    background:
-      "linear-gradient(145deg, rgba(30,41,59,0.96), rgba(15,23,42,0.96))",
-    border: "1px solid rgba(255,255,255,0.1)"
+    background: "linear-gradient(145deg, rgba(30,41,59,0.96), rgba(15,23,42,0.96))",
+    border: "1px solid rgba(255,40,120,0.1)"
   },
   memberName: {
     margin: 0,
@@ -550,8 +547,8 @@ const styles = {
     display: "inline-block",
     padding: "7px 12px",
     borderRadius: "999px",
-    background: "rgba(99,102,241,0.35)",
-    color: "#c7d2fe",
+    background: "rgba(255,40,120,0.25)",
+    color: "#ffb3cc",
     fontWeight: 900,
     marginBottom: "16px"
   },

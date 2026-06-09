@@ -27,8 +27,16 @@ export class TournamentRepository implements ITournamentRepository {
     };
   }
 
+  private formatDate(value: string | Date): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) throw new Error("Invalid date");
+
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  }
+
   async findAll(filters: { gameId?: number; status?: string; format?: string }): Promise<Tournament[]> {
-    const res = await this.db.getReadConnection();
+    const res = await this.db.getMasterConnection();
     if (!res) return [];
     try {
       let query = `SELECT * FROM tournaments WHERE 1=1`;
@@ -48,7 +56,7 @@ export class TournamentRepository implements ITournamentRepository {
   }
 
   async findById(id: number): Promise<Tournament | null> {
-    const res = await this.db.getReadConnection();
+    const res = await this.db.getMasterConnection();
     if (!res) return null;
     try {
       const [rows] = await res.conn.execute<RowDataPacket[]>(
@@ -65,15 +73,22 @@ export class TournamentRepository implements ITournamentRepository {
     const res = await this.db.getWriteConnection();
     if (!res) throw new Error("No DB connection");
     try {
+      const registrationDeadline = this.formatDate(dto.registration_deadline);
+      const startDate = this.formatDate(dto.start_date);
+
       const [result] = await res.conn.execute<ResultSetHeader>(
         `INSERT INTO tournaments (name, game_id, format, max_teams, prize_pool, registration_deadline, start_date)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [dto.name, dto.game_id, dto.format, dto.max_teams, dto.prize_pool ?? 0,
-         dto.registration_deadline, dto.start_date]
+         registrationDeadline, startDate]
       );
-      const created = await this.findById(result.insertId);
-      if (!created) throw new Error("Failed to fetch created tournament");
-      return created;
+
+      const [rows] = await res.conn.execute<RowDataPacket[]>(
+        `SELECT * FROM tournaments WHERE id = ?`,
+        [result.insertId],
+      );
+      if (rows.length === 0) throw new Error("Failed to fetch created tournament");
+      return this.map(rows[0]);
     } catch (err) {
       this.logger.error("TournamentRepository", "create failed", err);
       throw err;
@@ -89,10 +104,17 @@ export class TournamentRepository implements ITournamentRepository {
 
       if (dto.name)                  { fields.push("name = ?");                  params.push(dto.name); }
       if (dto.format)                { fields.push("format = ?");                params.push(dto.format); }
+      if (dto.status)               { fields.push("status = ?");                params.push(dto.status); }
       if (dto.max_teams)             { fields.push("max_teams = ?");             params.push(dto.max_teams); }
       if (dto.prize_pool !== undefined) { fields.push("prize_pool = ?");         params.push(dto.prize_pool); }
-      if (dto.registration_deadline) { fields.push("registration_deadline = ?"); params.push(dto.registration_deadline); }
-      if (dto.start_date)            { fields.push("start_date = ?");            params.push(dto.start_date); }
+      if (dto.registration_deadline) {
+        fields.push("registration_deadline = ?");
+        params.push(this.formatDate(dto.registration_deadline));
+      }
+      if (dto.start_date) {
+        fields.push("start_date = ?");
+        params.push(this.formatDate(dto.start_date));
+      }
 
       if (fields.length === 0) return this.findById(id);
 

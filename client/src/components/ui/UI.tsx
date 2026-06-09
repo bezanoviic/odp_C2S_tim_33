@@ -35,21 +35,38 @@ export function SuccessBox({ message }: { message: string }) {
   );
 }
 
-// TODO: Add StatusBadge variants for your domain entity statuses
 export function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    pending:   "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-    active:    "bg-sky-500/10 text-sky-400 border-sky-500/20",
+    upcoming: "bg-sky-500/10 text-sky-400 border-sky-500/20",
+    ongoing: "bg-indigo-500/10 text-indigo-300 border-indigo-500/20",
     completed: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     cancelled: "bg-red-500/10 text-red-400 border-red-500/20",
+    pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+    confirmed: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    disqualified: "bg-red-500/10 text-red-400 border-red-500/20",
+    scheduled: "bg-sky-500/10 text-sky-400 border-sky-500/20",
+    in_progress: "bg-indigo-500/10 text-indigo-300 border-indigo-500/20",
+    accepted: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    rejected: "bg-red-500/10 text-red-400 border-red-500/20",
   };
   const dotStyles: Record<string, string> = {
-    pending: "bg-yellow-400", active: "bg-sky-400 animate-pulse", completed: "bg-emerald-400", cancelled: "bg-red-400",
+    upcoming: "bg-sky-400",
+    ongoing: "bg-indigo-300 animate-pulse",
+    completed: "bg-emerald-400",
+    cancelled: "bg-red-400",
+    pending: "bg-yellow-400",
+    confirmed: "bg-emerald-400",
+    disqualified: "bg-red-400",
+    scheduled: "bg-sky-400",
+    in_progress: "bg-indigo-300 animate-pulse",
+    accepted: "bg-emerald-400",
+    rejected: "bg-red-400",
   };
+  const label = status.replace(/_/g, " ");
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border ${styles[status] ?? "bg-white/5 text-white/40 border-white/10"}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${dotStyles[status] ?? "bg-white/30"}`} />
-      {status}
+      {label}
     </span>
   );
 }
