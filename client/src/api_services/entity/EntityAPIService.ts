@@ -4,7 +4,7 @@ import type { IEntityAPIService, ApiResponse } from "./IEntityAPIService";
 import type { EntityDto } from "../../models/entity/EntityDto";
 import { readItem } from "../../helpers/local_storage";
 
-const BASE = import.meta.env.VITE_API_URL + "entities";
+const BASE = "/api/v1/entities";
 
 const authHeader = () => {
   const token = readItem("authToken");

@@ -7,152 +7,291 @@ type AuthenticatedRequest = Request & {
   };
 };
 
-const service = new TeamService();
+type InvitationStatus = "accepted" | "rejected";
 
-function getErrorMessage(error: Error): string {
-  return error.message || "Unexpected error";
+function isValidId(value: number): boolean {
+  return Number.isInteger(value) && value > 0;
+}
+
+function isValidTeamName(value: string): boolean {
+  return value.trim().length >= 2 && value.trim().length <= 80;
+}
+
+function isValidTeamTag(value: string): boolean {
+  return /^[A-Z0-9]{2,6}$/.test(value);
+}
+
+function isValidDescription(value: string | null): boolean {
+  return value === null || value.trim().length <= 255;
+}
+
+function isValidInvitationStatus(value: string): value is InvitationStatus {
+  return value === "accepted" || value === "rejected";
 }
 
 export class TeamController {
+  public constructor(private readonly service: TeamService) {}
+
   async createTeam(req: Request, res: Response): Promise<void> {
-    try {
-      const { name, tag, description } = req.body;
-      const userId = (req as AuthenticatedRequest).user.id;
+    const { name, tag, description } = req.body;
+    const userId = (req as AuthenticatedRequest).user.id;
 
-      const teamId = await service.createTeam(name, tag, description, userId);
-
-      res.status(201).json({ teamId });
-    } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error as Error) });
+    if (
+      typeof name !== "string" ||
+      typeof tag !== "string" ||
+      (description !== null && description !== undefined && typeof description !== "string")
+    ) {
+      res.status(400).json({ error: "Invalid request body" });
+      return;
     }
+
+    const normalizedDescription = description ?? null;
+
+    if (!isValidTeamName(name)) {
+      res.status(400).json({ error: "Team name must be between 2 and 80 characters" });
+      return;
+    }
+
+    if (!isValidTeamTag(tag)) {
+      res.status(400).json({ error: "Team tag must contain 2 to 6 uppercase letters or numbers" });
+      return;
+    }
+
+    if (!isValidDescription(normalizedDescription)) {
+      res.status(400).json({ error: "Description must be up to 255 characters" });
+      return;
+    }
+
+    const teamId = await this.service.createTeam(
+      name.trim(),
+      tag.trim(),
+      normalizedDescription,
+      userId
+    );
+
+    if (!teamId) {
+      res.status(500).json({ error: "Team could not be created" });
+      return;
+    }
+
+    res.status(201).json({ teamId });
   }
 
   async getMyTeams(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = (req as AuthenticatedRequest).user.id;
+    const userId = (req as AuthenticatedRequest).user.id;
+    const teams = await this.service.getMyTeams(userId);
 
-      const teams = await service.getMyTeams(userId);
-
-      res.json(teams);
-    } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error as Error) });
-    }
+    res.json(teams);
   }
 
   async getTeam(req: Request, res: Response): Promise<void> {
-    try {
-      const teamId = Number(req.params.id);
+    const teamId = Number(req.params.id);
 
-      const team = await service.getTeam(teamId);
-
-      res.json(team);
-    } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error as Error) });
+    if (!isValidId(teamId)) {
+      res.status(400).json({ error: "Invalid team id" });
+      return;
     }
+
+    const team = await this.service.getTeam(teamId);
+
+    if (!team) {
+      res.status(404).json({ error: "Team not found" });
+      return;
+    }
+
+    res.json(team);
   }
 
   async deleteTeam(req: Request, res: Response): Promise<void> {
-    try {
-      const teamId = Number(req.params.id);
+    const teamId = Number(req.params.id);
+    const userId = (req as AuthenticatedRequest).user.id;
 
-      await service.deleteTeam(teamId, req.user!.id);
-
-      res.status(204).send();
-    } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error as Error) });
+    if (!isValidId(teamId)) {
+      res.status(400).json({ error: "Invalid team id" });
+      return;
     }
+
+    const deleted = await this.service.deleteTeam(teamId, userId);
+
+    if (!deleted) {
+      res.status(403).json({ error: "Only captain can delete team" });
+      return;
+    }
+
+    res.status(204).send();
   }
 
   async inviteUser(req: Request, res: Response): Promise<void> {
-    try {
-      const teamId = Number(req.params.id);
-      const { invitedUserId } = req.body;
-      const userId = (req as AuthenticatedRequest).user.id;
+    const teamId = Number(req.params.id);
+    const invitedUserId = Number(req.body.invitedUserId);
+    const userId = (req as AuthenticatedRequest).user.id;
 
-      const inviteId = await service.inviteUser(teamId, invitedUserId, userId);
-
-      res.status(201).json({ inviteId });
-    } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error as Error) });
+    if (!isValidId(teamId)) {
+      res.status(400).json({ error: "Invalid team id" });
+      return;
     }
+
+    if (!isValidId(invitedUserId)) {
+      res.status(400).json({ error: "Invalid invited user id" });
+      return;
+    }
+
+    const inviteId = await this.service.inviteUser(teamId, invitedUserId, userId);
+
+    if (!inviteId) {
+      res.status(400).json({ error: "Invitation could not be created" });
+      return;
+    }
+
+    res.status(201).json({ inviteId });
   }
 
   async respondToInvite(req: Request, res: Response): Promise<void> {
-    try {
-      const { invitationId, status } = req.body;
-      const userId = (req as AuthenticatedRequest).user.id;
+    const invitationId = Number(req.body.invitationId);
+    const status = String(req.body.status);
+    const userId = (req as AuthenticatedRequest).user.id;
 
-      await service.respondToInvite(invitationId, userId, status);
-
-      res.status(200).send();
-    } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error as Error) });
+    if (!isValidId(invitationId)) {
+      res.status(400).json({ error: "Invalid invitation id" });
+      return;
     }
+
+    if (!isValidInvitationStatus(status)) {
+      res.status(400).json({ error: "Invalid invitation status" });
+      return;
+    }
+
+    const success = await this.service.respondToInvite(invitationId, userId, status);
+
+    if (!success) {
+      res.status(400).json({ error: "Invitation could not be resolved" });
+      return;
+    }
+
+    res.status(200).json({ success: true });
   }
 
-    async updateTeam(req: Request, res: Response): Promise<void> { 
-    try {
-      const teamId = Number(req.params.id);
-      const { name, tag, description } = req.body;
+  async updateTeam(req: Request, res: Response): Promise<void> {
+    const teamId = Number(req.params.id);
+    const { name, tag, description } = req.body;
+    const userId = (req as AuthenticatedRequest).user.id;
 
-      await service.updateTeam(teamId, name, tag, description, req.user!.id);
-
-      res.status(200).json({ success: true });
-    } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error as Error) });
+    if (!isValidId(teamId)) {
+      res.status(400).json({ error: "Invalid team id" });
+      return;
     }
+
+    if (
+      typeof name !== "string" ||
+      typeof tag !== "string" ||
+      (description !== null && description !== undefined && typeof description !== "string")
+    ) {
+      res.status(400).json({ error: "Invalid request body" });
+      return;
+    }
+
+    const normalizedDescription = description ?? null;
+
+    if (!isValidTeamName(name)) {
+      res.status(400).json({ error: "Team name must be between 2 and 80 characters" });
+      return;
+    }
+
+    if (!isValidTeamTag(tag)) {
+      res.status(400).json({ error: "Team tag must contain 2 to 6 uppercase letters or numbers" });
+      return;
+    }
+
+    if (!isValidDescription(normalizedDescription)) {
+      res.status(400).json({ error: "Description must be up to 255 characters" });
+      return;
+    }
+
+    const success = await this.service.updateTeam(
+      teamId,
+      name.trim(),
+      tag.trim(),
+      normalizedDescription,
+      userId
+    );
+
+    if (!success) {
+      res.status(403).json({ error: "Only captain can update team" });
+      return;
+    }
+
+    res.status(200).json({ success: true });
   }
 
   async getTeamMembers(req: Request, res: Response): Promise<void> {
-    try {
-      const teamId = Number(req.params.id);
+    const teamId = Number(req.params.id);
 
-      const members = await service.getTeamMembers(teamId);
-
-      res.json(members);
-    } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error as Error) });
+    if (!isValidId(teamId)) {
+      res.status(400).json({ error: "Invalid team id" });
+      return;
     }
+
+    const members = await this.service.getTeamMembers(teamId);
+
+    res.json(members);
   }
 
   async leaveTeam(req: Request, res: Response): Promise<void> {
-    try {
-      const teamId = Number(req.params.id);
-      const userId = (req as AuthenticatedRequest).user.id;
+    const teamId = Number(req.params.id);
+    const userId = (req as AuthenticatedRequest).user.id;
 
-      await service.leaveTeam(teamId, userId);
-
-      res.status(200).json({ success: true });
-    } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error as Error) });
+    if (!isValidId(teamId)) {
+      res.status(400).json({ error: "Invalid team id" });
+      return;
     }
+
+    const success = await this.service.leaveTeam(teamId, userId);
+
+    if (!success) {
+      res.status(400).json({ error: "Captain must transfer ownership before leaving team" });
+      return;
+    }
+
+    res.status(200).json({ success: true });
   }
 
   async kickMember(req: Request, res: Response): Promise<void> {
-    try {
-      const teamId = Number(req.params.id);
-      const targetUserId = Number(req.params.userId);
-      const captainId = (req as AuthenticatedRequest).user.id;
+    const teamId = Number(req.params.id);
+    const targetUserId = Number(req.params.userId);
+    const captainId = (req as AuthenticatedRequest).user.id;
 
-      await service.kickMember(teamId, targetUserId, captainId);
-
-      res.status(200).json({ success: true });
-    } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error as Error) });
+    if (!isValidId(teamId) || !isValidId(targetUserId)) {
+      res.status(400).json({ error: "Invalid id" });
+      return;
     }
+
+    const success = await this.service.kickMember(teamId, targetUserId, captainId);
+
+    if (!success) {
+      res.status(403).json({ error: "Only captain can remove members" });
+      return;
+    }
+
+    res.status(200).json({ success: true });
   }
 
   async transferCaptain(req: Request, res: Response): Promise<void> {
-    try {
-      const teamId = Number(req.params.id);
-      const { newCaptainId } = req.body;
-      const oldCaptainId = (req as AuthenticatedRequest).user.id;
+    const teamId = Number(req.params.id);
+    const newCaptainId = Number(req.body.newCaptainId);
+    const oldCaptainId = (req as AuthenticatedRequest).user.id;
 
-      await service.transferCaptain(teamId, oldCaptainId, newCaptainId);
-
-      res.status(200).json({ success: true });
-    } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error as Error) });
+    if (!isValidId(teamId) || !isValidId(newCaptainId)) {
+      res.status(400).json({ error: "Invalid id" });
+      return;
     }
+
+    const success = await this.service.transferCaptain(teamId, oldCaptainId, newCaptainId);
+
+    if (!success) {
+      res.status(400).json({ error: "Captain transfer could not be completed" });
+      return;
+    }
+
+    res.status(200).json({ success: true });
   }
 }

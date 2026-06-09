@@ -3,7 +3,7 @@ import type { IUsersAPIService, ApiResponse } from "./IUsersAPIService";
 import type { UserDto } from "../../models/user/UserTypes";
 import { readItem } from "../../helpers/local_storage";
 
-const BASE = import.meta.env.VITE_API_URL + "users";
+const BASE = "/api/v1/users";
 
 const authHeader = () => {
   const token = readItem("authToken");
@@ -17,7 +17,7 @@ const err = <T>(e: unknown, fallback: string): ApiResponse<T> => ({
 
 export const usersApi: IUsersAPIService = {
   async getAll() {
-    return axios.get<ApiResponse<UserDto[]>>(BASE, { headers: authHeader() })
+    return axios.get<ApiResponse<UserDto[]>>(`${BASE}/all`, { headers: authHeader() })
       .then(r => r.data).catch(e => err(e, "Failed to load users"));
   },
   async getById(id) {

@@ -6,7 +6,7 @@ export default function UserDashboard() {
   const { user } = useAuth();
   return (
     <div>
-      <PageHeader eyebrow="Overview" title={`Welcome, ${user?.username}`} />
+      <PageHeader eyebrow="Overview" title={`Welcome, ${user?.gamer_tag}`} />
       <p className="text-white/30 text-sm">Your dashboard content goes here.</p>
     </div>
   );

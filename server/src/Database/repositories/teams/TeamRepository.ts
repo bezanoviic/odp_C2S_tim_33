@@ -1,44 +1,94 @@
 import { ResultSetHeader, RowDataPacket } from "mysql2/promise";
-import { masterPool } from "../../connection/DbConnectionPool";
+import { DbManager } from "../../connection/DbConnectionPool";
+
+type DbParam = string | number | null;
+type InvitationStatus = "accepted" | "rejected";
 
 export class TeamRepository {
+  public constructor(private readonly db: DbManager) {}
+
+  private async selectRows(sql: string, params: DbParam[]): Promise<RowDataPacket[]> {
+    const readConnection = await this.db.getReadConnection();
+
+    if (!readConnection) {
+      return [];
+    }
+
+    try {
+      const [rows] = await readConnection.conn.execute<RowDataPacket[]>(sql, params);
+      return rows;
+    } finally {
+      readConnection.conn.release();
+    }
+  }
+
+  private async executeWrite(sql: string, params: DbParam[]): Promise<ResultSetHeader | null> {
+    const writeConnection = await this.db.getWriteConnection();
+
+    if (!writeConnection) {
+      return null;
+    }
+
+    try {
+      const [result] = await writeConnection.conn.execute<ResultSetHeader>(sql, params);
+      return result;
+    } finally {
+      writeConnection.conn.release();
+    }
+  }
+
   async createTeam(
     name: string,
     tag: string,
     description: string | null,
     userId: number
-  ): Promise<number> {
-    const [result] = await masterPool.execute<ResultSetHeader>(
-      `INSERT INTO teams (name, tag, description, created_by, captain_id)
-       VALUES (?, ?, ?, ?, ?)`,
-      [name, tag, description, userId, userId]
-    );
+  ): Promise<number | null> {
+    const writeConnection = await this.db.getWriteConnection();
 
-    const teamId = result.insertId;
+    if (!writeConnection) {
+      return null;
+    }
 
-    await masterPool.execute<ResultSetHeader>(
-      `INSERT INTO team_members (team_id, user_id, role)
-       VALUES (?, ?, 'captain')`,
-      [teamId, userId]
-    );
+    try {
+      await writeConnection.conn.beginTransaction();
 
-    return teamId;
+      const [teamResult] = await writeConnection.conn.execute<ResultSetHeader>(
+        `INSERT INTO teams (name, tag, description, created_by, captain_id)
+         VALUES (?, ?, ?, ?, ?)`,
+        [name, tag, description, userId, userId]
+      );
+
+      const teamId = teamResult.insertId;
+
+      await writeConnection.conn.execute<ResultSetHeader>(
+        `INSERT INTO team_members (team_id, user_id, role)
+         VALUES (?, ?, 'captain')`,
+        [teamId, userId]
+      );
+
+      await writeConnection.conn.commit();
+      return teamId;
+} catch (error) {
+  console.error("CREATE TEAM DB ERROR:", error);
+  await writeConnection.conn.rollback();
+  return null;
+} finally {
+  writeConnection.conn.release();
+}
   }
 
   async getUserTeams(userId: number): Promise<RowDataPacket[]> {
-    const [rows] = await masterPool.execute<RowDataPacket[]>(
+    return this.selectRows(
       `SELECT t.*
        FROM teams t
        JOIN team_members tm ON t.id = tm.team_id
        WHERE tm.user_id = ?`,
       [userId]
     );
-
-    return rows;
   }
 
   async getTeamById(teamId: number): Promise<RowDataPacket | null> {
-    const [rows] = await masterPool.execute<RowDataPacket[]>(
+    const rows = await this.selectRows(
       `SELECT *
        FROM teams
        WHERE id = ?`,
@@ -48,29 +98,34 @@ export class TeamRepository {
     return rows.length > 0 ? rows[0] : null;
   }
 
-  async deleteTeam(teamId: number): Promise<void> {
-    await masterPool.execute<ResultSetHeader>(
+  async deleteTeam(teamId: number): Promise<boolean> {
+    const result = await this.executeWrite(
       `DELETE FROM teams
        WHERE id = ?`,
       [teamId]
     );
+
+    return result !== null && result.affectedRows > 0;
   }
-    async updateTeam(
+
+  async updateTeam(
     teamId: number,
     name: string,
     tag: string,
     description: string | null
-  ): Promise<void> {
-    await masterPool.execute<ResultSetHeader>(
+  ): Promise<boolean> {
+    const result = await this.executeWrite(
       `UPDATE teams
        SET name = ?, tag = ?, description = ?
        WHERE id = ?`,
       [name, tag, description, teamId]
     );
+
+    return result !== null && result.affectedRows > 0;
   }
 
   async getTeamMembers(teamId: number): Promise<RowDataPacket[]> {
-    const [rows] = await masterPool.execute<RowDataPacket[]>(
+    return this.selectRows(
       `SELECT tm.team_id, tm.user_id, tm.role, tm.joined_at,
               u.gamer_tag, u.full_name, u.profile_image
        FROM team_members tm
@@ -78,15 +133,13 @@ export class TeamRepository {
        WHERE tm.team_id = ?`,
       [teamId]
     );
-
-    return rows;
   }
 
   async isCaptain(teamId: number, userId: number): Promise<boolean> {
-    const [rows] = await masterPool.execute<RowDataPacket[]>(
-      `SELECT *
-       FROM team_members
-       WHERE team_id = ? AND user_id = ? AND role = 'captain'`,
+    const rows = await this.selectRows(
+      `SELECT team_id
+ FROM team_members
+ WHERE team_id = ? AND user_id = ? AND role = 'captain'`,
       [teamId, userId]
     );
 
@@ -94,10 +147,10 @@ export class TeamRepository {
   }
 
   async isMember(teamId: number, userId: number): Promise<boolean> {
-    const [rows] = await masterPool.execute<RowDataPacket[]>(
-      `SELECT *
-       FROM team_members
-       WHERE team_id = ? AND user_id = ?`,
+    const rows = await this.selectRows(
+    `SELECT id
+ FROM team_members
+ WHERE team_id = ? AND user_id = ?`,
       [teamId, userId]
     );
 
@@ -108,18 +161,21 @@ export class TeamRepository {
     teamId: number,
     invitedUserId: number,
     invitedByUserId: number
-  ): Promise<number> {
-    const [result] = await masterPool.execute<ResultSetHeader>(
+  ): Promise<number | null> {
+    const result = await this.executeWrite(
       `INSERT INTO team_invitations (team_id, invited_user_id, invited_by_user_id)
        VALUES (?, ?, ?)`,
       [teamId, invitedUserId, invitedByUserId]
     );
 
-    return result.insertId;
+    return result ? result.insertId : null;
   }
 
-  async getPendingInvitation(teamId: number, invitedUserId: number): Promise<RowDataPacket | null> {
-    const [rows] = await masterPool.execute<RowDataPacket[]>(
+  async getPendingInvitation(
+    teamId: number,
+    invitedUserId: number
+  ): Promise<RowDataPacket | null> {
+    const rows = await this.selectRows(
       `SELECT *
        FROM team_invitations
        WHERE team_id = ? AND invited_user_id = ? AND status = 'pending'`,
@@ -131,65 +187,91 @@ export class TeamRepository {
 
   async respondToInvitation(
     invitationId: number,
-    status: "accepted" | "rejected"
-  ): Promise<void> {
-    await masterPool.execute<ResultSetHeader>(
+    status: InvitationStatus
+  ): Promise<boolean> {
+    const result = await this.executeWrite(
       `UPDATE team_invitations
        SET status = ?, responded_at = NOW()
-       WHERE id = ?`,
+       WHERE id = ? AND status = 'pending'`,
       [status, invitationId]
     );
+
+    return result !== null && result.affectedRows > 0;
   }
 
-  async addMember(teamId: number, userId: number): Promise<void> {
-    await masterPool.execute<ResultSetHeader>(
+  async addMember(teamId: number, userId: number): Promise<boolean> {
+    const result = await this.executeWrite(
       `INSERT INTO team_members (team_id, user_id, role)
        VALUES (?, ?, 'member')`,
       [teamId, userId]
     );
+
+    return result !== null && result.affectedRows > 0;
   }
 
-  async removeMember(teamId: number, userId: number): Promise<void> {
-    await masterPool.execute<ResultSetHeader>(
+  async removeMember(teamId: number, userId: number): Promise<boolean> {
+    const result = await this.executeWrite(
       `DELETE FROM team_members
        WHERE team_id = ? AND user_id = ?`,
       [teamId, userId]
     );
+
+    return result !== null && result.affectedRows > 0;
   }
 
-  async transferCaptain(teamId: number, oldCaptainId: number, newCaptainId: number): Promise<void> {
-    await masterPool.execute<ResultSetHeader>(
-      `UPDATE team_members
-       SET role = 'member'
-       WHERE team_id = ? AND user_id = ?`,
-      [teamId, oldCaptainId]
-    );
+  async transferCaptain(
+    teamId: number,
+    oldCaptainId: number,
+    newCaptainId: number
+  ): Promise<boolean> {
+    const writeConnection = await this.db.getWriteConnection();
 
-    await masterPool.execute<ResultSetHeader>(
-      `UPDATE team_members
-       SET role = 'captain'
-       WHERE team_id = ? AND user_id = ?`,
-      [teamId, newCaptainId]
-    );
+    if (!writeConnection) {
+      return false;
+    }
 
-    await masterPool.execute<ResultSetHeader>(
-      `UPDATE teams
-       SET captain_id = ?
+    try {
+      await writeConnection.conn.beginTransaction();
+
+      await writeConnection.conn.execute<ResultSetHeader>(
+        `UPDATE team_members
+         SET role = 'member'
+         WHERE team_id = ? AND user_id = ?`,
+        [teamId, oldCaptainId]
+      );
+
+      await writeConnection.conn.execute<ResultSetHeader>(
+        `UPDATE team_members
+         SET role = 'captain'
+         WHERE team_id = ? AND user_id = ?`,
+        [teamId, newCaptainId]
+      );
+
+      const [teamResult] = await writeConnection.conn.execute<ResultSetHeader>(
+        `UPDATE teams
+         SET captain_id = ?
+         WHERE id = ?`,
+        [newCaptainId, teamId]
+      );
+
+      await writeConnection.conn.commit();
+      return teamResult.affectedRows > 0;
+    } catch {
+      await writeConnection.conn.rollback();
+      return false;
+    } finally {
+      writeConnection.conn.release();
+    }
+  }
+
+  async getInvitationById(invitationId: number): Promise<RowDataPacket | null> {
+    const rows = await this.selectRows(
+      `SELECT *
+       FROM team_invitations
        WHERE id = ?`,
-      [newCaptainId, teamId]
+      [invitationId]
     );
-    
+
+    return rows.length > 0 ? rows[0] : null;
   }
-  
-async getInvitationById(invitationId: number): Promise<RowDataPacket | null> {
-  const [rows] = await masterPool.execute<RowDataPacket[]>(
-    `SELECT *
-     FROM team_invitations
-     WHERE id = ?`,
-    [invitationId]
-  );
-
-  return rows.length > 0 ? rows[0] : null;
-}
-
 }
