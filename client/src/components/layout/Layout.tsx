@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/auth/useAuthHook";
 
@@ -6,14 +6,18 @@ const userNav = [
   { to: "/dashboard", label: "Dashboard", icon: "⬡" },
   { to: "/games",     label: "Games",     icon: "◈" },
   { to: "/teams",     label: "Teams",     icon: "◎" },
+  { to: "/tournaments", label: "Tournaments", icon: "♦" },
+  { to: "/watchlist", label: "Watchlist", icon: "★" },
 ];
 
 const adminNav = [
   { to: "/admin",          label: "Dashboard", icon: "⬡" },
   { to: "/admin/users",    label: "Users",     icon: "◎" },
   { to: "/admin/games",    label: "Games",     icon: "◈" },
+  { to: "/tournaments",    label: "Tournaments", icon: "♦" },
   { to: "/admin/health",   label: "Health",    icon: "♡" },
   { to: "/admin/audit",    label: "Audit Log", icon: "≡" },
+  { to: "/watchlist",      label: "Watchlist", icon: "★" },
 ];
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -30,19 +34,25 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
           <div>
             <p className="text-sm font-semibold text-white tracking-tight">Pulse</p>
-            <p className="text-[10px] text-white/25 uppercase tracking-widest">{user?.role}</p>
+            <p className="text-[10px] text-white/25 uppercase tracking-widest">
+              {user?.role}
+            </p>
           </div>
         </div>
 
         <nav className="flex-1 py-4 px-3 flex flex-col gap-0.5">
           {nav.map((item) => (
-            <NavLink key={item.to} to={item.to} end
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                [
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all",
                   isActive
                     ? "bg-white/8 text-white border border-white/12"
-                    : "text-white/35 hover:text-white/70 hover:bg-white/4 border border-transparent"
-                }`
+                    : "text-white/35 hover:text-white/70 hover:bg-white/4 border border-transparent",
+                ].join(" ")
               }
             >
               <span className="text-base leading-none">{item.icon}</span>
@@ -52,23 +62,36 @@ export function Layout({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="border-t border-white/5 px-4 py-4">
-          <div className="flex items-center gap-3 mb-3">
+          <NavLink
+            to={`/users/${user?.id}`}
+            className="flex items-center gap-3 mb-3 hover:bg-white/4 rounded-lg p-1 -m-1 transition"
+          >
             <div className="w-7 h-7 rounded-full bg-white/6 border border-white/10 flex items-center justify-center">
-              <span className="text-xs text-white/40 font-medium">{user?.gamer_tag?.[0]?.toUpperCase()}</span>
+              <span className="text-xs text-white/40 font-medium">
+                {user?.gamer_tag?.[0]?.toUpperCase()}
+              </span>
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-medium text-white/70 truncate">{user?.gamer_tag}</p>
+              <p className="text-xs font-medium text-white/70 truncate">
+                {user?.gamer_tag}
+              </p>
             </div>
-          </div>
-          <button onClick={() => { logout(); navigate("/login"); }}
-            className="text-xs text-white/20 hover:text-white/50 transition-colors w-full text-left">
+          </NavLink>
+
+          <button
+            onClick={() => {
+              logout();
+              navigate("/login");
+            }}
+            className="text-xs text-white/20 hover:text-white/50 transition-colors w-full text-left"
+          >
             Sign out →
           </button>
         </div>
       </aside>
 
       <main className="flex-1 overflow-auto">
-        <div className="max-w-5xl mx-auto px-8 py-8">{children}</div>
+        <div className="max-w-5xl mx-auto px-6 py-8">{children}</div>
       </main>
     </div>
   );

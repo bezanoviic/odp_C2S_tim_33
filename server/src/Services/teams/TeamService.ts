@@ -162,4 +162,7 @@ export class TeamService {
   async getTeamMembers(teamId: number): Promise<RowDataPacket[]> {
     return this.repo.getTeamMembers(teamId);
   }
+  async getMyInvitations(userId: number) {
+  return this.repo.getMyInvitations(userId);
+}
 }

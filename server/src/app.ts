@@ -31,6 +31,9 @@ import { TournamentService }    from "./Services/tournaments/TournamentService";
 import { TournamentController } from "./WebAPI/controllers/TournamentController";
 import { WatchlistRepository } from "./Database/repositories/watchlist/WatchlistRepository";
 import { TournamentRegistrationRepository } from "./Database/repositories/registrations/TournamentRegistrationRepository";
+import { MatchRepository } from "./Database/repositories/matches/MatchRepository";
+import { MatchService } from "./Services/matches/MatchService";
+import { MatchController } from "./WebAPI/controllers/MatchController";
 
 
 export const logger = new ConsoleLoggerService();
@@ -41,6 +44,7 @@ const userRepo = new UserRepository(db, logger);
 const tournamentRepo = new TournamentRepository(db, logger);
 const watchlistRepo = new WatchlistRepository(db, logger);
 const registrationRepo = new TournamentRegistrationRepository(db, logger);
+const matchRepo = new MatchRepository(db, logger);
 const teamRepo = new TeamRepository(db);
 //const gameRepo = new GameRepository(db, logger);
 //const teamRepo = new TeamRepository(db, logger);
@@ -49,6 +53,7 @@ const teamRepo = new TeamRepository(db);
 const authService = new AuthService(userRepo);
 const userService = new UserService(userRepo);
 const tournamentService = new TournamentService(tournamentRepo, watchlistRepo, registrationRepo);
+const matchService = new MatchService(matchRepo);
 const teamService = new TeamService(teamRepo);
 //const gameService = new GameService(gameRepo);
 const teamController = new TeamController(teamService);
@@ -74,10 +79,12 @@ app.post("/api/v1/teams", authenticate, (req, res) => teamController.createTeam(
 app.get("/api/v1/teams/:id/members", authenticate, (req, res) => teamController.getTeamMembers(req, res));
 
 app.get("/api/v1/teams", authenticate, (req, res) => teamController.getMyTeams(req, res));
+app.get("/api/v1/teams/invitations/my", authenticate, (req, res) => teamController.getMyInvitations(req, res));
 app.get("/api/v1/teams/:id", authenticate, (req, res) => teamController.getTeam(req, res));
 app.delete("/api/v1/teams/:id", authenticate, (req, res) => teamController.deleteTeam(req, res));
 
 app.use("/api/v1", new TournamentController(tournamentService).getRouter());
+app.use("/api/v1", new MatchController(matchService).getRouter());
 //app.use("/api/v1", new GameController(gameService).getRouter());
 //app.use("/api/v1", new TeamController(teamService).getRouter());
 

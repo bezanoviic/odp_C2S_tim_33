@@ -18,6 +18,7 @@ export class TournamentController {
     this.router.delete("/tournaments/:id/register/:teamId", authenticate, this.unregister.bind(this));
     this.router.get("/tournaments/:id/registrations", this.getRegistrations.bind(this));
     this.router.patch("/tournaments/:id/registrations/:teamId",  authenticate, authorize(UserRole.ADMIN), this.updateStatus.bind(this));
+    this.router.get("/tournaments/watchlist/me", authenticate, this.getMyWatchlist.bind(this));
   }
 
   private async getAll(req: Request, res: Response): Promise<void> {
@@ -108,5 +109,10 @@ private async updateStatus(req: Request, res: Response): Promise<void> {
   if (!status) { res.status(400).json({ success: false, message: "Status required" }); return; }
   const ok = await this.tournamentService.updateRegistrationStatus(tournamentId, teamId, status);
   res.status(ok ? 200 : 404).json({ success: ok });
+}
+
+private async getMyWatchlist(req: Request, res: Response): Promise<void> {
+  const data = await this.tournamentService.getWatchlist(req.user!.id);
+  res.status(200).json({ success: true, data });
 }
 }

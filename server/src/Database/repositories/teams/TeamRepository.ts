@@ -146,9 +146,9 @@ export class TeamRepository {
     return rows.length > 0;
   }
 
-  async isMember(teamId: number, userId: number): Promise<boolean> {
+ async isMember(teamId: number, userId: number): Promise<boolean> {
     const rows = await this.selectRows(
-    `SELECT id
+    `SELECT team_id
  FROM team_members
  WHERE team_id = ? AND user_id = ?`,
       [teamId, userId]
@@ -274,4 +274,16 @@ export class TeamRepository {
 
     return rows.length > 0 ? rows[0] : null;
   }
+  async getMyInvitations(userId: number): Promise<RowDataPacket[]> {
+  return this.selectRows(
+    `SELECT ti.id, ti.team_id, ti.created_at,
+            t.name AS team_name, t.tag AS team_tag,
+            u.gamer_tag AS invited_by
+     FROM team_invitations ti
+     JOIN teams t ON t.id = ti.team_id
+     JOIN users u ON u.id = ti.invited_by_user_id
+     WHERE ti.invited_user_id = ? AND ti.status = 'pending'`,
+    [userId]
+  );
+}
 }

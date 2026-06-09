@@ -294,4 +294,9 @@ export class TeamController {
 
     res.status(200).json({ success: true });
   }
+  async getMyInvitations(req: Request, res: Response): Promise<void> {
+  const userId = (req as AuthenticatedRequest).user.id;
+  const invitations = await this.service.getMyInvitations(userId);
+  res.json(invitations);
+}
 }

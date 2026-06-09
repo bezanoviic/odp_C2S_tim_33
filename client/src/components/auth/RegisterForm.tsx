@@ -4,6 +4,10 @@ import type { IAuthAPIService } from "../../api_services/auth/IAuthAPIService";
 
 type FormState = { gamer_tag: string; full_name: string; email: string; password: string };
 
+const GRID_LINES = [1,2,3,4,5,6,7];
+const DOTS: [number,number][] = [[25,25],[50,25],[75,25],[12.5,50],[37.5,50],[62.5,50],[87.5,50],[25,75],[50,75],[75,75]];
+const DOT_OPACITIES = DOTS.map(() => +(Math.random() * 0.3 + 0.2).toFixed(2));
+
 export function RegisterForm({ authApi }: { authApi: IAuthAPIService }) {
   const { login } = useAuth();
   const [form, setForm]       = useState<FormState>({ gamer_tag: "", full_name: "", email: "", password: "" });
@@ -14,7 +18,7 @@ export function RegisterForm({ authApi }: { authApi: IAuthAPIService }) {
     setForm(f => ({ ...f, [k]: e.target.value }));
 
   const validate = (): string | null => {
-    if (!/^[a-zA-Z0-9\-\.]{3,30}$/.test(form.gamer_tag))
+    if (!/^[a-zA-Z0-9\-.]{3,30}$/.test(form.gamer_tag))
       return "Gamer tag: 3-30 chars, letters/numbers/hyphen/dot";
     if (form.full_name.trim().length < 2)
       return "Full name must be at least 2 characters";
@@ -37,48 +41,152 @@ export function RegisterForm({ authApi }: { authApi: IAuthAPIService }) {
   };
 
   const fields: { key: keyof FormState; label: string; type: string; placeholder: string }[] = [
-    { key: "gamer_tag",  label: "Gamer Tag",  type: "text",     placeholder: "your.tag (3-30 chars)" },
-    { key: "full_name",  label: "Full Name",  type: "text",     placeholder: "John Doe" },
-    { key: "email",      label: "Email",      type: "email",    placeholder: "you@email.com" },
-    { key: "password",   label: "Password",   type: "password", placeholder: "Min 8 chars, 1 uppercase, 1 digit" },
+    { key: "gamer_tag", label: "GAMER TAG",  type: "text",     placeholder: "your.tag (3-30 chars)" },
+    { key: "full_name", label: "FULL NAME",  type: "text",     placeholder: "John Doe" },
+    { key: "email",     label: "EMAIL",      type: "email",    placeholder: "you@email.com" },
+    { key: "password",  label: "PASSWORD",   type: "password", placeholder: "Min 8 chars, 1 uppercase, 1 digit" },
   ];
 
+  const inputStyle: React.CSSProperties = {
+    width: "100%", background: "transparent", border: "none",
+    borderBottom: "1px solid rgba(255,255,255,0.12)",
+    padding: "10px 0 10px 2px", color: "#fff", fontSize: "14px",
+    outline: "none", fontFamily: "inherit", transition: "border-color 0.2s",
+  };
+
   return (
-    <div className="w-full max-w-sm">
-      <div className="text-center mb-10">
-        <div className="w-12 h-12 rounded-2xl bg-white/8 border border-white/12 flex items-center justify-center mx-auto mb-4">
-          <span className="text-white/60 text-lg">◈</span>
+    <div style={{ display:"flex", width:"100%", height:"100vh", background:"#06040f", fontFamily:"Inter,Arial,sans-serif", overflow:"hidden" }}>
+
+      {/* ── LEFT PANEL ── */}
+      <div style={{ flex:1, position:"relative", overflow:"hidden", borderRight:"1px solid rgba(255,40,120,0.15)" }}>
+
+        {GRID_LINES.map(i => (
+          <div key={`h${i}`} style={{ position:"absolute", left:0, right:0, top:`${i*100/8}%`, height:"1px", background:"rgba(255,255,255,0.05)" }} />
+        ))}
+        {GRID_LINES.map(i => (
+          <div key={`v${i}`} style={{ position:"absolute", top:0, bottom:0, left:`${i*100/8}%`, width:"1px", background:"rgba(255,255,255,0.05)" }} />
+        ))}
+        {DOTS.map(([x,y], i) => (
+          <div key={i} style={{ position:"absolute", left:`${x}%`, top:`${y}%`, transform:"translate(-50%,-50%)", width:"4px", height:"4px", borderRadius:"50%", background:`rgba(255,40,120,${DOT_OPACITIES[i]})` }} />
+        ))}
+
+        <span style={{ position:"absolute", top:"20px", left:"20px", fontSize:"11px", letterSpacing:"0.14em", color:"rgba(255,255,255,0.5)", fontWeight:500 }}>SYS.REG // C2S</span>
+        <span style={{ position:"absolute", top:"20px", right:"20px", fontSize:"11px", letterSpacing:"0.14em", color:"rgba(255,255,255,0.5)", fontWeight:500 }}>BUILD 2.4.1</span>
+        <span style={{ position:"absolute", bottom:"44px", left:"20px", fontSize:"10px", letterSpacing:"0.12em", color:"rgba(255,40,120,0.65)", fontFamily:"monospace" }}>0xFF2878</span>
+        <span style={{ position:"absolute", top:"44px", right:"20px", fontSize:"10px", letterSpacing:"0.12em", color:"rgba(255,40,120,0.65)", fontFamily:"monospace" }}>0x07050F</span>
+
+        {([
+          { top:"36px",    left:"36px",  borderWidth:"1px 0 0 1px" },
+          { top:"36px",    right:"36px", borderWidth:"1px 1px 0 0" },
+          { bottom:"32px", left:"36px",  borderWidth:"0 0 1px 1px" },
+          { bottom:"32px", right:"36px", borderWidth:"0 1px 1px 0" },
+        ] as React.CSSProperties[]).map((pos, i) => (
+          <div key={i} style={{ position:"absolute", width:"14px", height:"14px", borderColor:"rgba(255,40,120,0.7)", borderStyle:"solid", ...pos }} />
+        ))}
+
+        <div style={{ position:"absolute", left:"36px", right:"36px", top:"42%", height:"1px", background:"rgba(255,40,120,0.2)" }} />
+        <span style={{ position:"absolute", bottom:"16px", right:"-8px", fontSize:"120px", fontWeight:800, color:"rgba(255,255,255,0.025)", letterSpacing:"-8px", lineHeight:1, userSelect:"none" }}>07</span>
+
+        {/* Center content */}
+        <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", textAlign:"center", width:"220px" }}>
+          <span style={{ display:"block", fontSize:"10px", letterSpacing:"0.28em", color:"rgba(255,40,120,0.65)", marginBottom:"16px" }}>ARENA PLATFORM</span>
+
+          <svg width="80" height="80" viewBox="0 0 80 80" style={{ margin:"0 auto 16px", display:"block" }}>
+            <polygon points="40,4 76,22 76,58 40,76 4,58 4,22" fill="none" stroke="rgba(255,40,120,0.55)" strokeWidth="1.2"/>
+            <polygon points="40,12 68,27 68,53 40,68 12,53 12,27" fill="none" stroke="rgba(255,40,120,0.2)" strokeWidth="0.6"/>
+            <line x1="40" y1="4"  x2="40" y2="12" stroke="rgba(255,40,120,0.5)" strokeWidth="0.8"/>
+            <line x1="40" y1="68" x2="40" y2="76" stroke="rgba(255,40,120,0.5)" strokeWidth="0.8"/>
+            <line x1="4"  y1="22" x2="12" y2="27" stroke="rgba(255,40,120,0.5)" strokeWidth="0.8"/>
+            <line x1="68" y1="27" x2="76" y2="22" stroke="rgba(255,40,120,0.5)" strokeWidth="0.8"/>
+            <line x1="4"  y1="58" x2="12" y2="53" stroke="rgba(255,40,120,0.5)" strokeWidth="0.8"/>
+            <line x1="68" y1="53" x2="76" y2="58" stroke="rgba(255,40,120,0.5)" strokeWidth="0.8"/>
+            <text x="40" y="37" textAnchor="middle" fontFamily="Inter,Arial,sans-serif" fontSize="14" fontWeight="800" fill="rgba(255,255,255,0.95)" letterSpacing="1.5">LM</text>
+            <text x="40" y="53" textAnchor="middle" fontFamily="Inter,Arial,sans-serif" fontSize="14" fontWeight="800" fill="rgba(255,40,120,0.95)" letterSpacing="1.5">VG</text>
+          </svg>
+
+          <div style={{ fontSize:"26px", fontWeight:800, color:"#fff", lineHeight:1.1, marginBottom:"10px", letterSpacing:"-0.5px" }}>
+            Join the<br/><span style={{ color:"rgba(255,40,120,0.9)" }}>Arena.</span>
+          </div>
+          <div style={{ fontSize:"11px", color:"rgba(255,255,255,0.3)", lineHeight:1.7 }}>
+            Create your profile<br/>and start competing
+          </div>
         </div>
-        <h1 className="text-xl font-semibold text-white">Create account</h1>
-        <p className="text-sm text-white/35 mt-1">Register to get started</p>
+
+        {/* Status bar */}
+        <div style={{ position:"absolute", bottom:0, left:0, right:0, padding:"10px 20px", borderTop:"1px solid rgba(255,255,255,0.06)", display:"flex", alignItems:"center", gap:"10px" }}>
+          <div style={{ width:"6px", height:"6px", borderRadius:"50%", background:"#ff2878", animation:"blink 1.8s infinite" }} />
+          <span style={{ fontSize:"10px", letterSpacing:"0.14em", color:"rgba(255,255,255,0.4)" }}>REGISTRATION OPEN</span>
+          <span style={{ fontSize:"10px", letterSpacing:"0.14em", color:"rgba(255,40,120,0.55)", marginLeft:"auto" }}>▮▮▮▯ SIGNAL</span>
+        </div>
       </div>
 
-      {error && (
-        <div className="mb-5 bg-red-500/10 border border-red-500/20 text-red-300 text-sm px-4 py-3 rounded-xl">
-          {error}
+      {/* ── RIGHT PANEL ── */}
+      <div style={{ width:"45%", padding:"32px 48px", display:"flex", flexDirection:"column", justifyContent:"center", background:"#07050f", borderLeft:"1px solid rgba(255,40,120,0.08)", overflowY:"auto" }}>
+
+        <div style={{ fontSize:"10px", letterSpacing:"0.22em", color:"rgba(255,40,120,0.7)", marginBottom:"18px", display:"flex", alignItems:"center", gap:"12px" }}>
+          <span style={{ display:"inline-block", width:"20px", height:"1px", background:"rgba(255,40,120,0.6)" }} />
+          NEW PLAYER
         </div>
-      )}
 
-      <form onSubmit={submit} className="flex flex-col gap-4">
-        {fields.map(({ key, label, type, placeholder }) => (
-          <div key={key}>
-            <label className="block text-xs text-white/40 mb-2 font-medium">{label}</label>
-            <input
-              type={type} value={form[key]} onChange={set(key)} required
-              className="w-full bg-white/4 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 focus:outline-none focus:border-white/30 transition-colors"
-              placeholder={placeholder} />
+        <div style={{ fontSize:"26px", fontWeight:800, color:"#fff", lineHeight:1.1, letterSpacing:"-0.5px", marginBottom:"6px" }}>Create<br/>account.</div>
+        <div style={{ fontSize:"12px", color:"rgba(255,255,255,0.28)", marginBottom:"22px", lineHeight:1.6 }}>Register to start competing on the platform.</div>
+
+        {error && (
+          <div style={{ marginBottom:"14px", padding:"10px 14px", border:"1px solid rgba(255,80,80,0.25)", background:"rgba(255,80,80,0.06)", color:"rgba(255,130,130,0.9)", fontSize:"12px", letterSpacing:"0.05em" }}>
+            {error}
           </div>
-        ))}
-        <button type="submit" disabled={loading}
-          className="mt-2 bg-white hover:bg-white/90 disabled:opacity-50 text-black font-semibold rounded-xl py-3 text-sm transition-colors">
-          {loading ? "Creating account…" : "Create account"}
-        </button>
-      </form>
+        )}
 
-      <p className="text-center text-white/30 text-sm mt-6">
-        Already have an account?{" "}
-        <a href="/login" className="text-white/60 hover:text-white transition-colors">Sign in</a>
-      </p>
+        <form onSubmit={submit} style={{ display:"flex", flexDirection:"column" }}>
+          {fields.map(({ key, label, type, placeholder }) => (
+            <div key={key} style={{ marginBottom:"18px" }}>
+              <div style={{ fontSize:"10px", letterSpacing:"0.18em", color:"rgba(255,255,255,0.35)", marginBottom:"8px" }}>{label}</div>
+              <input
+                type={type} value={form[key]} onChange={set(key)} required
+                placeholder={placeholder}
+                style={inputStyle}
+                onFocus={e => e.target.style.borderBottomColor = "rgba(255,40,120,0.8)"}
+                onBlur={e => e.target.style.borderBottomColor = "rgba(255,255,255,0.12)"}
+              />
+            </div>
+          ))}
+
+          <div style={{ position:"relative", marginTop:"10px" }}>
+            {([
+              { top:0,    left:0,  borderWidth:"1px 0 0 1px" },
+              { top:0,    right:0, borderWidth:"1px 1px 0 0" },
+              { bottom:0, left:0,  borderWidth:"0 0 1px 1px" },
+              { bottom:0, right:0, borderWidth:"0 1px 1px 0" },
+            ] as React.CSSProperties[]).map((pos, i) => (
+              <span key={i} style={{ position:"absolute", width:"8px", height:"8px", borderColor:"rgba(255,40,120,0.65)", borderStyle:"solid", ...pos }} />
+            ))}
+            <button
+              type="submit" disabled={loading}
+              style={{ width:"100%", padding:"16px", background:"rgba(255,40,120,0.08)", border:"1px solid rgba(255,40,120,0.4)", color:"#ff2878", fontSize:"12px", fontWeight:700, letterSpacing:"0.24em", cursor:loading?"not-allowed":"pointer", fontFamily:"inherit", opacity:loading?0.4:1, transition:"background 0.2s, border-color 0.2s" }}
+              onMouseEnter={e => { if(!loading){ const b=e.currentTarget; b.style.background="rgba(255,40,120,0.18)"; b.style.borderColor="rgba(255,40,120,0.8)"; }}}
+              onMouseLeave={e => { const b=e.currentTarget; b.style.background="rgba(255,40,120,0.08)"; b.style.borderColor="rgba(255,40,120,0.4)"; }}
+            >
+              {loading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
+            </button>
+          </div>
+        </form>
+
+        <p style={{ marginTop:"16px", fontSize:"12px", color:"rgba(255,255,255,0.22)", textAlign:"center" }}>
+          Already have an account?{" "}
+          <a href="/login" style={{ color:"rgba(255,40,120,0.75)", textDecoration:"none" }}>Sign in</a>
+        </p>
+      </div>
+
+     <style>{`
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px #07050f inset !important;
+    -webkit-text-fill-color: #fff !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+`}</style>
     </div>
   );
 }

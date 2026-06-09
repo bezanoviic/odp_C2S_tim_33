@@ -13,9 +13,5 @@ export default function LoginPage() {
     navigate(user.role === "admin" ? "/admin" : "/dashboard");
   }, [isAuthenticated, user, navigate]);
 
-  return (
-    <main className="min-h-screen bg-[#080808] flex items-center justify-center px-4">
-      <LoginForm authApi={authApi} />
-    </main>
-  );
+  return <LoginForm authApi={authApi} />;
 }
