@@ -27,7 +27,7 @@ const entityRepo = new EntityRepository(db, logger);
 const authService   = new AuthService(userRepo);
 const userService   = new UserService(userRepo);
 const entityService = new EntityService(entityRepo);
-
+//
 // Express
 const app = express();
 app.use(cors({ origin: process.env.CLIENT_URL ?? "*" }));

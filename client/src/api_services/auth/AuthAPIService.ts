@@ -9,12 +9,12 @@ const err = (e: unknown, fallback: string): AuthResponse => ({
 });
 
 export const authApi: IAuthAPIService = {
-  async login(username, password) {
-    return axios.post<AuthResponse>(`${BASE}/login`, { username, password })
+  async login(gamer_tag, password) {
+    return axios.post<AuthResponse>(`${BASE}/login`, { gamer_tag, password })
       .then(r => r.data).catch(e => err(e, "Login failed"));
   },
-  async register(username, email, password, role) {
-    return axios.post<AuthResponse>(`${BASE}/register`, { username, email, password, role })
+  async register(gamer_tag, full_name, email, password) {
+    return axios.post<AuthResponse>(`${BASE}/register`, { gamer_tag, full_name, email, password, })
       .then(r => r.data).catch(e => err(e, "Registration failed"));
   },
 };

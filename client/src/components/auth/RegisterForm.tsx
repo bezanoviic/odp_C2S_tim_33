@@ -2,20 +2,46 @@ import { useState } from "react";
 import { useAuth } from "../../hooks/auth/useAuthHook";
 import type { IAuthAPIService } from "../../api_services/auth/IAuthAPIService";
 
+type FormState = { gamer_tag: string; full_name: string; email: string; password: string };
+
 export function RegisterForm({ authApi }: { authApi: IAuthAPIService }) {
   const { login } = useAuth();
-  const [form, setForm] = useState({ username: "", email: "", password: "" });
-  const [error, setError] = useState("");
+  const [form, setForm]       = useState<FormState>({ gamer_tag: "", full_name: "", email: "", password: "" });
+  const [error, setError]     = useState("");
   const [loading, setLoading] = useState(false);
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
+  
+  const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const validate = (): string | null => {
+    if (!/^[a-zA-Z0-9\-\.]{3,30}$/.test(form.gamer_tag))
+      return "Gamer Tag: 3-30 chars, letters/numbers/hyphen/dot";
+    if (form.full_name.trim().length < 2)
+      return "Full Name must be at least 2 characters";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      return "Invalid email address";
+    if (form.password.length < 8 || !/[A-Z]/.test(form.password) || !/[0-9]/.test(form.password))
+      return "Password: 8+ chars, 1 uppercase, 1 digit";
+    return null;
+  };
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); setError(""); setLoading(true);
-    const res = await authApi.register(form.username, form.email, form.password, "user");
+    e.preventDefault();
+    const validationError = validate();
+    if (validationError) { setError(validationError); return; }
+    setError(""); setLoading(true);
+    const res = await authApi.register(form.gamer_tag, form.full_name, form.email, form.password);
     setLoading(false);
     if (!res.success || !res.data) { setError(res.message ?? "Registration failed"); return; }
     login(res.data);
   };
+
+  const fields: { key: keyof FormState; label: string; type: string; placeholder: string }[] = [
+    { key: "gamer_tag",  label: "Gamer Tag",  type: "text",     placeholder: "your_gamertag (3-30 chars)" },
+    { key: "full_name",  label: "Full Name",  type: "text",     placeholder: "John Doe" },
+    { key: "email",      label: "Email",      type: "email",    placeholder: "you@email.com" },
+    { key: "password",   label: "Password",   type: "password", placeholder: "Min 8 chars, 1 uppercase, 1 digit" },
+  ];
 
   return (
     <div className="w-full max-w-sm">
@@ -34,14 +60,13 @@ export function RegisterForm({ authApi }: { authApi: IAuthAPIService }) {
       )}
 
       <form onSubmit={submit} className="flex flex-col gap-4">
-        {(["username", "email", "password"] as const).map((field) => (
-          <div key={field}>
-            <label className="block text-xs text-white/40 mb-2 font-medium capitalize">{field}</label>
+        {fields.map(({ key, label, type, placeholder }) => (
+          <div key={key}>
+            <label className="block text-xs text-white/40 mb-2 font-medium">{label}</label>
             <input
-              type={field === "password" ? "password" : field === "email" ? "email" : "text"}
-              value={form[field]} onChange={set(field)} required
+              type={type} value={form[key]} onChange={set(key)} required
               className="w-full bg-white/4 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 focus:outline-none focus:border-white/30 transition-colors"
-              placeholder={field === "password" ? "Min 8 chars, 1 uppercase, 1 number" : ""} />
+              placeholder={placeholder} />
           </div>
         ))}
         <button type="submit" disabled={loading}

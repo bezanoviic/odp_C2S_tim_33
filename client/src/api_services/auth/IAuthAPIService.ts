@@ -1,6 +1,6 @@
 import type { AuthResponse } from "../../types/auth/AuthResponse";
 
 export interface IAuthAPIService {
-  login(username: string, password: string): Promise<AuthResponse>;
-  register(username: string, email: string, password: string, role: string): Promise<AuthResponse>;
+  login(gamer_tag: string, password: string): Promise<AuthResponse>;
+  register(gamer_tag: string, full_name: string, email: string, password: string): Promise<AuthResponse>;
 }

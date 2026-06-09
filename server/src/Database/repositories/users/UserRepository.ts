@@ -12,7 +12,7 @@ export class UserRepository implements IUserRepository {
   ) {}
 
   private map(r: RowDataPacket): User {
-    return new User(r.id, r.username, r.email, r.role as UserRole, r.passwordHash, r.isActive);
+    return new User(r.id, r.gamer_tag, r.full_name, r.email, r.role as UserRole, r.password_hash);
   }
 
   async create(user: User): Promise<User> {
@@ -21,10 +21,10 @@ export class UserRepository implements IUserRepository {
     try {
       const [result] = await res.conn.execute<ResultSetHeader>(
         `INSERT INTO users (username, email, role, passwordHash) VALUES (?, ?, ?, ?)`,
-        [user.username, user.email, user.role, user.passwordHash]
+        [user.gamer_tag, user.email, user.role, user.password_hash]
       );
       if (result.insertId === 0) return new User();
-      return new User(result.insertId, user.username, user.email, user.role, user.passwordHash);
+      return new User(result.insertId, user.gamer_tag, user.full_name, user.email, user.role, user.password_hash);
     } catch (err) {
       this.logger.error("UserRepository", "create failed", err);
       return new User();
@@ -85,7 +85,7 @@ export class UserRepository implements IUserRepository {
     try {
       const [result] = await res.conn.execute<ResultSetHeader>(
         `UPDATE users SET username = ?, email = ?, role = ?, isActive = ? WHERE id = ?`,
-        [user.username, user.email, user.role, user.isActive, user.id]
+        [user.gamer_tag, user.email, user.role, user.id]
       );
       return result.affectedRows > 0;
     } catch (err) {
@@ -121,4 +121,32 @@ export class UserRepository implements IUserRepository {
       return false;
     } finally { res.conn.release(); }
   }
+
+  async findByGamerTag(tag: string): Promise<User> {
+  const res = await this.db.getReadConnection();
+  if (!res) return new User();
+  try {
+    const [rows] = await res.conn.execute<RowDataPacket[]>(
+      `SELECT * FROM users WHERE gamer_tag = ?`, [tag]
+    );
+    return rows.length > 0 ? this.map(rows[0]) : new User();
+  } catch (err) {
+    this.logger.error("UserRepository", "findByGamerTag failed", err);
+    return new User();
+  } finally { res.conn.release(); }
+}
+
+async changeRole(id: number, role: UserRole): Promise<boolean> {
+  const res = await this.db.getWriteConnection();
+  if (!res) return false;
+  try {
+    const [result] = await res.conn.execute<ResultSetHeader>(
+      `UPDATE users SET role = ? WHERE id = ?`, [role, id]
+    );
+    return result.affectedRows > 0;
+  } catch (err) {
+    this.logger.error("UserRepository", "changeRole failed", err);
+    return false;
+  } finally { res.conn.release(); }
+}
 }

@@ -4,14 +4,14 @@ import type { IAuthAPIService } from "../../api_services/auth/IAuthAPIService";
 
 export function LoginForm({ authApi }: { authApi: IAuthAPIService }) {
   const { login } = useAuth();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [gamer_tag, setGamerTag]  = useState("");
+  const [password, setPassword]   = useState("");
+  const [error, setError]         = useState("");
+  const [loading, setLoading]     = useState(false);
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); setError(""); setLoading(true);
-    const res = await authApi.login(username, password);
+    const res = await authApi.login(gamer_tag, password);
     setLoading(false);
     if (!res.success || !res.data) { setError(res.message ?? "Invalid credentials"); return; }
     login(res.data);
@@ -35,10 +35,10 @@ export function LoginForm({ authApi }: { authApi: IAuthAPIService }) {
 
       <form onSubmit={submit} className="flex flex-col gap-4">
         <div>
-          <label className="block text-xs text-white/40 mb-2 font-medium">Username</label>
-          <input type="text" value={username} onChange={e => setUsername(e.target.value)} required
+          <label className="block text-xs text-white/40 mb-2 font-medium">Gamer Tag</label>
+          <input type="text" value={gamer_tag} onChange={e => setGamerTag(e.target.value)} required
             className="w-full bg-white/4 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 focus:outline-none focus:border-white/30 transition-colors"
-            placeholder="your_username" />
+            placeholder="your_gamertag" />
         </div>
         <div>
           <label className="block text-xs text-white/40 mb-2 font-medium">Password</label>

@@ -1,1 +1,1 @@
-export type JwtTokenClaims = { id: number; username: string; role: string; exp?: number };
+export type JwtTokenClaims = { id: number; gamer_tag: string; role: string; exp?: number };
