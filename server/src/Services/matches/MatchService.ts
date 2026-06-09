@@ -1,4 +1,7 @@
 import { IMatchRepository } from "../../Domain/repositories/matches/IMatchRepository";
+import { IMatchPlayerRepository } from "../../Domain/repositories/matches/IMatchPlayerRepository";
+import { ITeamMemberRepository } from "../../Domain/repositories/teams/ITeamMemberRepository";
+import { ITournamentRegistrationRepository } from "../../Domain/repositories/registrations/ITournamentRegistrationRepository";
 import { IMatchService } from "../../Domain/services/matches/IMatchService";
 import { Match } from "../../Domain/models/Match";
 import { MatchDto } from "../../Domain/DTOs/matches/MatchDto";
@@ -7,21 +10,28 @@ import { UpdateMatchResultDto } from "../../Domain/DTOs/matches/UpdateMatchResul
 import { UpsertMatchPlayerDto } from "../../Domain/DTOs/matches/UpsertMatchPlayerDto";
 
 export class MatchService implements IMatchService {
-  public constructor(private readonly matchRepo: IMatchRepository) {}
+  public constructor(
+    private readonly matchRepo: IMatchRepository,
+    private readonly playerRepo: IMatchPlayerRepository,
+    private readonly teamMemberRepo: ITeamMemberRepository,
+    private readonly registrationRepo: ITournamentRegistrationRepository,
+  ) {}
 
   async getById(id: number): Promise<MatchDto | null> {
     const match = await this.matchRepo.findById(id);
     return match ? this.toDto(match) : null;
   }
 
-  async getByTournamentId(tournamentId: number): Promise<MatchDto[]> {
-    const matches = await this.matchRepo.findByTournamentId(tournamentId);
+  async getByTournamentId(
+    tournamentId: number,
+    filters: { round?: number; status?: string; teamId?: number } = {},
+  ): Promise<MatchDto[]> {
+    const matches = await this.matchRepo.findByTournamentId(tournamentId, filters);
     return matches.map((match) => this.toDto(match));
   }
 
   async generateBracket(tournamentId: number): Promise<MatchDto[]> {
-    const teamIds = await this.matchRepo.findApprovedTeamIdsByTournamentId(tournamentId);
-    console.log("[DEBUG] generateBracket tournamentId=", tournamentId, "teamIds=", teamIds);
+    const teamIds = await this.registrationRepo.findApprovedTeamIdsByTournamentId(tournamentId);
 
     if (teamIds.length < 2) {
       return [];
@@ -69,9 +79,7 @@ export class MatchService implements IMatchService {
     const createdMatches = await this.matchRepo.createMany(matches);
 
     for (const match of createdMatches) {
-      if (match.round_number !== 1) {
-        continue;
-      }
+      if (match.round_number !== 1) continue;
 
       if (match.team1_id && !match.team2_id) {
         await this.advanceByeWinner(match, match.team1_id);
@@ -86,25 +94,14 @@ export class MatchService implements IMatchService {
     return tournamentMatches.map((match) => this.toDto(match));
   }
 
-  async updateResult(
-    matchId: number,
-    dto: UpdateMatchResultDto,
-  ): Promise<MatchDto | null> {
+  async updateResult(matchId: number, dto: UpdateMatchResultDto): Promise<MatchDto | null> {
     const match = await this.matchRepo.findById(matchId);
+    if (!match) return null;
 
-    if (!match) {
-      return null;
-    }
-
-    if (!this.isTeamInMatch(match, dto.winner_team_id)) {
-      return null;
-    }
+    if (!this.isTeamInMatch(match, dto.winner_team_id)) return null;
 
     const updatedMatch = await this.matchRepo.updateResult(matchId, dto);
-
-    if (!updatedMatch) {
-      return null;
-    }
+    if (!updatedMatch) return null;
 
     await this.advanceWinner(updatedMatch, dto.winner_team_id);
 
@@ -117,23 +114,12 @@ export class MatchService implements IMatchService {
     dto: UpsertMatchPlayerDto,
   ): Promise<MatchPlayerDto | null> {
     const match = await this.matchRepo.findById(matchId);
+    if (!match) return null;
 
-    if (!match) {
-      return null;
-    }
+    const allowed = await this.canManageTeamPlayer(match, currentUserId, dto.user_id, dto.team_id);
+    if (!allowed) return null;
 
-    const allowed = await this.canManageTeamPlayer(
-      match,
-      currentUserId,
-      dto.user_id,
-      dto.team_id,
-    );
-
-    if (!allowed) {
-      return null;
-    }
-
-    return this.matchRepo.addPlayer(matchId, dto);
+    return this.playerRepo.addPlayer(matchId, dto);
   }
 
   async updatePlayer(
@@ -143,61 +129,32 @@ export class MatchService implements IMatchService {
     dto: UpsertMatchPlayerDto,
   ): Promise<MatchPlayerDto | null> {
     const match = await this.matchRepo.findById(matchId);
+    if (!match) return null;
 
-    if (!match) {
-      return null;
-    }
+    const allowed = await this.canManageTeamPlayer(match, currentUserId, userId, dto.team_id);
+    if (!allowed) return null;
 
-    const allowed = await this.canManageTeamPlayer(
-      match,
-      currentUserId,
-      userId,
-      dto.team_id,
-    );
-
-    if (!allowed) {
-      return null;
-    }
-
-    return this.matchRepo.updatePlayer(matchId, userId, dto);
+    return this.playerRepo.updatePlayer(matchId, userId, dto);
   }
 
-  async removePlayer(
-    matchId: number,
-    currentUserId: number,
-    userId: number,
-  ): Promise<boolean> {
+  async removePlayer(matchId: number, currentUserId: number, userId: number): Promise<boolean> {
     const match = await this.matchRepo.findById(matchId);
+    if (!match) return false;
 
-    if (!match) {
-      return false;
-    }
-
-    const players = await this.matchRepo.findPlayersByMatchId(matchId);
+    const players = await this.playerRepo.findPlayersByMatchId(matchId);
     const player = players.find((item: MatchPlayerDto) => item.user_id === userId);
+    if (!player) return false;
 
-    if (!player) {
-      return false;
-    }
+    if (!this.isTeamInMatch(match, player.team_id)) return false;
 
-    if (!this.isTeamInMatch(match, player.team_id)) {
-      return false;
-    }
+    const isCaptain = await this.teamMemberRepo.isCaptain(player.team_id, currentUserId);
+    if (!isCaptain) return false;
 
-    const isCaptain = await this.matchRepo.isUserTeamCaptain(
-      currentUserId,
-      player.team_id,
-    );
-
-    if (!isCaptain) {
-      return false;
-    }
-
-    return this.matchRepo.removePlayer(matchId, userId);
+    return this.playerRepo.removePlayer(matchId, userId);
   }
 
   async getPlayers(matchId: number): Promise<MatchPlayerDto[]> {
-    return this.matchRepo.findPlayersByMatchId(matchId);
+    return this.playerRepo.findPlayersByMatchId(matchId);
   }
 
   private toDto(match: Match): MatchDto {
@@ -220,11 +177,7 @@ export class MatchService implements IMatchService {
 
   private getNextPowerOfTwo(value: number): number {
     let size = 1;
-
-    while (size < value) {
-      size *= 2;
-    }
-
+    while (size < value) size *= 2;
     return size;
   }
 
@@ -238,17 +191,10 @@ export class MatchService implements IMatchService {
     userId: number,
     teamId: number,
   ): Promise<boolean> {
-    if (!this.isTeamInMatch(match, teamId)) {
-      return false;
-    }
-
-    const isCaptain = await this.matchRepo.isUserTeamCaptain(captainId, teamId);
-
-    if (!isCaptain) {
-      return false;
-    }
-
-    return this.matchRepo.isUserTeamMember(userId, teamId);
+    if (!this.isTeamInMatch(match, teamId)) return false;
+    const isCaptain = await this.teamMemberRepo.isCaptain(teamId, captainId);
+    if (!isCaptain) return false;
+    return this.teamMemberRepo.isMember(teamId, userId);
   }
 
   private async advanceByeWinner(match: Match, winnerTeamId: number): Promise<void> {
@@ -262,14 +208,10 @@ export class MatchService implements IMatchService {
 
     const tournamentMatches = await this.matchRepo.findByTournamentId(match.tournament_id);
     const nextMatch = tournamentMatches.find(
-      (item) =>
-        item.round_number === nextRound &&
-        item.match_number === nextMatchNumber,
+      (item) => item.round_number === nextRound && item.match_number === nextMatchNumber,
     );
 
-    if (!nextMatch) {
-      return;
-    }
+    if (!nextMatch) return;
 
     await this.matchRepo.updateNextMatchTeam(nextMatch.id, winnerTeamId, slot);
   }

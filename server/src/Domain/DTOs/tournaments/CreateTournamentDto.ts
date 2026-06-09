@@ -7,4 +7,5 @@ export interface CreateTournamentDto {
   prize_pool?: number;
   registration_deadline: Date;
   start_date: Date;
+  created_by?: number | null;
 }

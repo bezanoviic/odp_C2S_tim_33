@@ -36,7 +36,7 @@ export class TournamentRepository implements ITournamentRepository {
   }
 
   async findAll(filters: { gameId?: number; status?: string; format?: string }): Promise<Tournament[]> {
-    const res = await this.db.getMasterConnection();
+    const res = await this.db.getReadConnection();
     if (!res) return [];
     try {
       let query = `SELECT * FROM tournaments WHERE 1=1`;
@@ -50,13 +50,13 @@ export class TournamentRepository implements ITournamentRepository {
       const [rows] = await res.conn.execute<RowDataPacket[]>(query, params);
       return rows.map((r) => this.map(r));
     } catch (err) {
-      this.logger.error("TournamentRepository", "findAll failed", err);
+      this.logger.error("TournamentRepository", "findAll failed", err as Error);
       return [];
     } finally { res.conn.release(); }
   }
 
   async findById(id: number): Promise<Tournament | null> {
-    const res = await this.db.getMasterConnection();
+    const res = await this.db.getReadConnection();
     if (!res) return null;
     try {
       const [rows] = await res.conn.execute<RowDataPacket[]>(
@@ -64,7 +64,7 @@ export class TournamentRepository implements ITournamentRepository {
       );
       return rows.length > 0 ? this.map(rows[0]) : null;
     } catch (err) {
-      this.logger.error("TournamentRepository", "findById failed", err);
+      this.logger.error("TournamentRepository", "findById failed", err as Error);
       return null;
     } finally { res.conn.release(); }
   }
@@ -77,10 +77,10 @@ export class TournamentRepository implements ITournamentRepository {
       const startDate = this.formatDate(dto.start_date);
 
       const [result] = await res.conn.execute<ResultSetHeader>(
-        `INSERT INTO tournaments (name, game_id, format, max_teams, prize_pool, registration_deadline, start_date)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO tournaments (name, game_id, format, max_teams, prize_pool, registration_deadline, start_date, created_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [dto.name, dto.game_id, dto.format, dto.max_teams, dto.prize_pool ?? 0,
-         registrationDeadline, startDate]
+         registrationDeadline, startDate, dto.created_by ?? null]
       );
 
       const [rows] = await res.conn.execute<RowDataPacket[]>(
@@ -90,7 +90,7 @@ export class TournamentRepository implements ITournamentRepository {
       if (rows.length === 0) throw new Error("Failed to fetch created tournament");
       return this.map(rows[0]);
     } catch (err) {
-      this.logger.error("TournamentRepository", "create failed", err);
+      this.logger.error("TournamentRepository", "create failed", err as Error);
       throw err;
     } finally { res.conn.release(); }
   }
@@ -124,7 +124,7 @@ export class TournamentRepository implements ITournamentRepository {
       );
       return this.findById(id);
     } catch (err) {
-      this.logger.error("TournamentRepository", "update failed", err);
+      this.logger.error("TournamentRepository", "update failed", err as Error);
       return null;
     } finally { res.conn.release(); }
   }
@@ -138,7 +138,7 @@ export class TournamentRepository implements ITournamentRepository {
       );
       return result.affectedRows > 0;
     } catch (err) {
-      this.logger.error("TournamentRepository", "delete failed", err);
+      this.logger.error("TournamentRepository", "delete failed", err as Error);
       return false;
     } finally { res.conn.release(); }
   }

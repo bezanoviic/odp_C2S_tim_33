@@ -166,6 +166,21 @@ export function LoginForm({ authApi }: { authApi: IAuthAPIService }) {
           No account?{" "}
           <a href="/register" style={{ color:"rgba(255,40,120,0.75)", textDecoration:"none" }}>Create one</a>
         </p>
+
+        <div style={{ display:"flex", alignItems:"center", gap:"10px", margin:"22px 0 14px" }}>
+          <span style={{ flex:1, height:"1px", background:"rgba(255,255,255,0.08)" }} />
+          <span style={{ fontSize:"10px", letterSpacing:"0.22em", color:"rgba(255,255,255,0.25)" }}>OR</span>
+          <span style={{ flex:1, height:"1px", background:"rgba(255,255,255,0.08)" }} />
+        </div>
+
+        <a href="/tournaments"
+          style={{ display:"block", width:"100%", padding:"14px", background:"transparent", border:"1px solid rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.65)", fontSize:"11px", fontWeight:700, letterSpacing:"0.24em", textAlign:"center", textDecoration:"none", transition:"all 0.2s", boxSizing:"border-box" }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,40,120,0.5)"; e.currentTarget.style.color = "#fff"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}
+        >
+          ENTER AS GUEST →
+        </a>
+
       </div>
 
       <style>{`

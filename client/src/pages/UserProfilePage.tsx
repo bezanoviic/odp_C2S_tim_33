@@ -77,7 +77,7 @@ export default function UserProfilePage() {
     if (!profile) return;
     setSaveError(""); setSaveOk(false); setSaving(true);
     try {
-      const body: Record<string, unknown> = {
+      const body: { full_name: string; gamer_tag: string; email: string; profile_image?: string | null } = {
         full_name:  form.full_name,
         gamer_tag:  form.gamer_tag,
         email:      form.email,

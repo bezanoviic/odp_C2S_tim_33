@@ -6,14 +6,22 @@ const ACCENT = "#ff2878";
 const LIMIT = 20;
 
 const ACTION_COLOR: Record<string, string> = {
-  CREATE_GAME:       "rgba(100,220,150,0.85)",
-  UPDATE_GAME:       "rgba(100,180,255,0.85)",
-  DELETE_GAME:       "rgba(255,80,80,0.85)",
-  LOGIN:             "rgba(255,210,80,0.85)",
-  LOGOUT:            "rgba(180,180,180,0.6)",
-  CREATE_TOURNAMENT: "rgba(180,120,255,0.85)",
-  UPDATE_TOURNAMENT: "rgba(100,180,255,0.85)",
-  DELETE_TOURNAMENT: "rgba(255,80,80,0.85)",
+  REGISTER:                   "rgba(160,255,180,0.85)",
+  LOGIN:                      "rgba(255,210,80,0.85)",
+  LOGOUT:                     "rgba(180,180,180,0.6)",
+  CHANGE_ROLE:                "rgba(255,160,60,0.85)",
+  UPDATE_PROFILE:             "rgba(100,180,255,0.85)",
+  CREATE_GAME:                "rgba(100,220,150,0.85)",
+  UPDATE_GAME:                "rgba(100,180,255,0.85)",
+  DELETE_GAME:                "rgba(255,80,80,0.85)",
+  CREATE_TOURNAMENT:          "rgba(180,120,255,0.85)",
+  UPDATE_TOURNAMENT:          "rgba(100,180,255,0.85)",
+  DELETE_TOURNAMENT:          "rgba(255,80,80,0.85)",
+  REGISTER_TEAM:              "rgba(120,255,220,0.85)",
+  UNREGISTER_TEAM:            "rgba(255,140,140,0.85)",
+  REGISTRATION_STATUS_CHANGE: "rgba(255,200,120,0.85)",
+  GENERATE_BRACKET:           "rgba(200,120,255,0.85)",
+  UPDATE_MATCH_RESULT:        "rgba(120,220,255,0.85)",
 };
 
 const corners: React.CSSProperties[] = [
@@ -28,7 +36,8 @@ function actionColor(action: string) {
 }
 
 function formatDate(iso: string) {
-  const d = new Date(iso);
+  const hasTimezone = iso.endsWith("Z") || /[+-]\d{2}:?\d{2}$/.test(iso);
+  const d = new Date(hasTimezone ? iso : iso + "Z");
   return d.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" })
     + "  " + d.toLocaleTimeString("en-GB", { hour:"2-digit", minute:"2-digit", second:"2-digit" });
 }

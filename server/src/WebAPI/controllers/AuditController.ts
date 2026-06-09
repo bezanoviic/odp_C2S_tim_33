@@ -8,7 +8,7 @@ export class AuditController {
   private readonly router = Router();
 
   public constructor(private readonly auditService: IAuditService) {
-    this.router.get("/audits/logs", this.getLogs.bind(this));
+    this.router.get("/audits/logs", authenticate, authorize(UserRole.ADMIN), this.getLogs.bind(this));
   }
 
   private async getLogs(req: Request, res: Response): Promise<void> {

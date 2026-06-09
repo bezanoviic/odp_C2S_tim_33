@@ -17,6 +17,7 @@ import TournamentDetailsPage from "./pages/TournamentDetailsPage";
 import AdminGamesPage from "./pages/admin/AdminGamesPage";
 import AdminHealthPage from "./pages/admin/AdminHealthPage";
 import AdminAuditPage from "./pages/admin/AdminAuditPage";
+import AdminRegistrationsPage from "./pages/admin/AdminRegistrationsPage";
 import AdminEditTournamentPage from "./pages/admin/AdminEditTournamentPage";
 import GamesPage from "./pages/GamesPage";
 import TournamentsPage from "./pages/TournamentsPage";
@@ -35,19 +36,19 @@ export default function App() {
 
       <Route path="/games" element={<GamesPage />} />
 
-      {/* Tournaments */}
+      {/* Tournaments — public (guest can view) */}
       <Route path="/tournaments" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowGuest>
           <TournamentsPage />
         </ProtectedRoute>
       } />
       <Route path="/tournaments/:id" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowGuest>
           <TournamentDetailsPage />
         </ProtectedRoute>
       } />
       <Route path="/tournaments/:id/bracket" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowGuest>
           <TournamentBracketPage />
         </ProtectedRoute>
       } />
@@ -83,6 +84,7 @@ export default function App() {
       <Route path="/admin/users"           element={<ProtectedRoute requiredRole="admin"><UsersPage /></ProtectedRoute>} />
       <Route path="/admin/games"           element={<ProtectedRoute requiredRole="admin"><AdminGamesPage /></ProtectedRoute>} />
       <Route path="/admin/health"          element={<ProtectedRoute requiredRole="admin"><AdminHealthPage /></ProtectedRoute>} />
+      <Route path="/admin/registrations"   element={<ProtectedRoute requiredRole="admin"><AdminRegistrationsPage /></ProtectedRoute>} />
       <Route path="/admin/audit"           element={<ProtectedRoute requiredRole="admin"><AdminAuditPage /></ProtectedRoute>} />
       <Route path="/admin/tournaments/new" element={<ProtectedRoute requiredRole="admin"><AdminTournamentCreatePage /></ProtectedRoute>} />
       <Route path="/admin/tournaments/:id/edit" element={
@@ -98,7 +100,7 @@ export default function App() {
         </ProtectedRoute>
       } />
       <Route path="/teams/:id" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowGuest>
           <TeamDetailsPage />
         </ProtectedRoute>
       } />

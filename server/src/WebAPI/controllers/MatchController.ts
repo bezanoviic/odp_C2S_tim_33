@@ -1,6 +1,6 @@
-
 import { Request, Response, Router } from "express";
 import { IMatchService } from "../../Domain/services/matches/IMatchService";
+import { IAuditService } from "../../Domain/services/audit/IAuditService";
 import { authenticate } from "../../Middlewares/authentification/AuthMiddleware";
 import { authorize } from "../../Middlewares/authorization/AuthorizeMiddleware";
 import { UserRole } from "../../Domain/enums/UserRole";
@@ -8,10 +8,14 @@ import { UserRole } from "../../Domain/enums/UserRole";
 export class MatchController {
   private readonly router = Router();
 
-  public constructor(private readonly matchService: IMatchService) {
-    this.router.get("/matches/:id/players", authenticate, this.getPlayers.bind(this));
-    this.router.get("/matches/:id", authenticate, this.getById.bind(this));
-    this.router.get("/tournaments/:id/matches", authenticate, this.getByTournamentId.bind(this));
+  public constructor(
+    private readonly matchService: IMatchService,
+    private readonly auditService: IAuditService,
+  ) {
+    this.router.get("/matches/:id/players", this.getPlayers.bind(this));
+    this.router.get("/matches/tournament/:id", this.getByTournamentId.bind(this));
+    this.router.get("/matches/:id", this.getById.bind(this));
+    this.router.get("/tournaments/:id/matches", this.getByTournamentId.bind(this));
 
     this.router.post(
       "/tournaments/:id/generate-bracket",
@@ -82,13 +86,20 @@ export class MatchController {
 
   private async getByTournamentId(req: Request, res: Response): Promise<void> {
     const tournamentId = parseInt(req.params.id as string, 10);
+    const round = req.query.round ? parseInt(req.query.round as string, 10) : undefined;
+    const teamId = req.query.teamId ? parseInt(req.query.teamId as string, 10) : undefined;
+    const filters = {
+      round: round !== undefined && !isNaN(round) ? round : undefined,
+      status: req.query.status as string | undefined,
+      teamId: teamId !== undefined && !isNaN(teamId) ? teamId : undefined,
+    };
 
     if (isNaN(tournamentId)) {
       res.status(400).json({ success: false, message: "Invalid tournament id" });
       return;
     }
 
-    const data = await this.matchService.getByTournamentId(tournamentId);
+    const data = await this.matchService.getByTournamentId(tournamentId, filters);
     res.status(200).json({ success: true, data });
   }
 
@@ -110,6 +121,7 @@ export class MatchController {
       return;
     }
 
+    await this.auditService.log(req.user!.id, "GENERATE_BRACKET", "tournament", tournamentId, `Generated bracket for tournament ${tournamentId} (${data.length} matches)`);
     res.status(201).json({ success: true, data });
   }
 
@@ -121,7 +133,17 @@ export class MatchController {
       return;
     }
 
-    const { team1_score, team2_score, winner_team_id } = req.body;
+    let { team1_score, team2_score, winner_team_id } = req.body;
+
+    if (typeof req.body.score === "string") {
+      const match = /^(\d+):(\d+)$/.exec(req.body.score.trim());
+      if (!match) {
+        res.status(400).json({ success: false, message: "score must use X:Y format" });
+        return;
+      }
+      team1_score = Number(match[1]);
+      team2_score = Number(match[2]);
+    }
 
     if (
       typeof team1_score !== "number" ||
@@ -149,6 +171,7 @@ export class MatchController {
       return;
     }
 
+    await this.auditService.log(req.user!.id, "UPDATE_MATCH_RESULT", "match", matchId, `Match ${matchId} result: ${team1_score}:${team2_score}, winner team ${winner_team_id}`);
     res.status(200).json({ success: true, data });
   }
 
@@ -202,7 +225,7 @@ export class MatchController {
       return;
     }
 
-    const { team_id } = req.body;
+    const { team_id, performance_notes } = req.body;
 
     if (typeof team_id !== "number") {
       res.status(400).json({
@@ -219,6 +242,7 @@ export class MatchController {
       {
         user_id: userId,
         team_id,
+        performance_notes: performance_notes ?? null,
       },
     );
 

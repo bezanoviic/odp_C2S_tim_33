@@ -245,9 +245,11 @@ export default function TournamentDetailsPage() {
                 <Link to={`/tournaments/${tournament.id}/bracket`} style={{ ...actionButton, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff" }}>
                   View bracket
                 </Link>
-                <button onClick={handleWatch} style={{ ...actionButton, background: "rgba(255,40,120,0.1)", border: "1px solid rgba(255,40,120,0.45)", color: ACCENT }}>
-                  {watching ? "Unwatch" : "Watch"}
-                </button>
+                {user && (
+                  <button onClick={handleWatch} style={{ ...actionButton, background: "rgba(255,40,120,0.1)", border: "1px solid rgba(255,40,120,0.45)", color: ACCENT }}>
+                    {watching ? "Unwatch" : "Watch"}
+                  </button>
+                )}
               </div>
 
               {user?.role === "admin" && (
@@ -278,7 +280,7 @@ export default function TournamentDetailsPage() {
           </div>
         </div>
 
-        {registrationOpen && availableTeams.length > 0 && (
+        {user && registrationOpen && availableTeams.length > 0 && (
           <div style={{ ...panelStyle, marginBottom: "30px" }}>
             <div style={{ fontSize: "10px", letterSpacing: "0.28em", color: "rgba(255,40,120,0.7)", marginBottom: "12px" }}>REGISTRATION</div>
             <h2 style={{ fontSize: "24px", fontWeight: 800, margin: "0 0 22px" }}>Register a Team<span style={{ color: ACCENT }}>.</span></h2>

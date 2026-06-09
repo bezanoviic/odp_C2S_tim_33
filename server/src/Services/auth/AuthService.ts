@@ -1,14 +1,29 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { IAuthService }    from "../../Domain/services/auth/IAuthService";
 import { IUserRepository } from "../../Domain/repositories/users/IUserRepository";
 import { AuthUserDto }     from "../../Domain/DTOs/auth/AuthUserDto";
 import { UserRole }        from "../../Domain/enums/UserRole";
 import { User }            from "../../Domain/models/User";
 
+const TOKEN_EXPIRES_IN = "24h";
+
 export class AuthService implements IAuthService {
   private readonly saltRounds = parseInt(process.env.SALT_ROUNDS ?? "10", 10);
 
   public constructor(private readonly userRepo: IUserRepository) {}
+
+  issueToken(user: AuthUserDto): string {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error("JWT_SECRET is not configured");
+    }
+    return jwt.sign(
+      { id: user.id, gamer_tag: user.gamer_tag, role: user.role },
+      secret,
+      { expiresIn: TOKEN_EXPIRES_IN },
+    );
+  }
 
   async login(gamer_tag: string, password: string): Promise<AuthUserDto> {
     const user = await this.userRepo.findByGamerTag(gamer_tag);

@@ -35,6 +35,9 @@ const adminNav = [
   { to: "/tournaments",        label: "Tournaments", icon: (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="18" cy="5" r="3"/><circle cx="18" cy="19" r="3"/><circle cx="6" cy="12" r="3"/><path d="M6 15v1a6 6 0 0 0 6 6M6 9V8a6 6 0 0 1 6-6h6"/></svg>
   )},
+  { to: "/admin/registrations", label: "Registrations", icon: (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+  )},
   { to: "/admin/health",       label: "Health",      icon: (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
   )},
@@ -46,10 +49,20 @@ const adminNav = [
   )},
 ];
 
+const guestNav = [
+  { to: "/games",       label: "Games",       icon: (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 4 0v2"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+  )},
+  { to: "/tournaments", label: "Tournaments", icon: (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="18" cy="5" r="3"/><circle cx="18" cy="19" r="3"/><circle cx="6" cy="12" r="3"/><path d="M6 15v1a6 6 0 0 0 6 6M6 9V8a6 6 0 0 1 6-6h6"/></svg>
+  )},
+];
+
 export function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const nav = user?.role === "admin" ? adminNav : userNav;
+  const isGuest = !user;
+  const nav = isGuest ? guestNav : user?.role === "admin" ? adminNav : userNav;
   const isAdmin = user?.role === "admin";
 
   return (
@@ -72,8 +85,8 @@ export function Layout({ children }: { children: ReactNode }) {
           </svg>
           <div>
             <p style={{ fontSize:"14px", fontWeight:800, color:"#fff", letterSpacing:"-0.3px", margin:0 }}>Pulse</p>
-            <p style={{ fontSize:"9px", color: isAdmin ? ACCENT : "rgba(255,255,255,0.25)", letterSpacing:"0.2em", textTransform:"uppercase", margin:0 }}>
-              {user?.role}
+            <p style={{ fontSize:"9px", color: isAdmin ? ACCENT : isGuest ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.25)", letterSpacing:"0.2em", textTransform:"uppercase", margin:0 }}>
+              {isGuest ? "guest" : user?.role}
             </p>
           </div>
         </div>
@@ -106,29 +119,40 @@ export function Layout({ children }: { children: ReactNode }) {
 
         {/* User */}
         <div style={{ padding:"14px 14px 16px" }}>
-          <NavLink to={`/users/${user?.id}`} style={{ textDecoration:"none" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:"10px", padding:"8px 10px", marginBottom:"8px", border:"1px solid transparent", transition:"border-color 0.15s" }}
-              onMouseEnter={e => e.currentTarget.style.borderColor="rgba(255,255,255,0.08)"}
-              onMouseLeave={e => e.currentTarget.style.borderColor="transparent"}>
-              <div style={{ width:"28px", height:"28px", borderRadius:"50%", background:"rgba(255,40,120,0.08)", border:"1px solid rgba(255,40,120,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                <span style={{ fontSize:"12px", color:ACCENT, fontWeight:700 }}>
-                  {user?.gamer_tag?.[0]?.toUpperCase()}
-                </span>
-              </div>
-              <div style={{ minWidth:0 }}>
-                <p style={{ fontSize:"12px", fontWeight:600, color:"rgba(255,255,255,0.7)", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                  {user?.gamer_tag}
-                </p>
-              </div>
-            </div>
-          </NavLink>
+          {isGuest ? (
+            <button onClick={() => navigate("/login")}
+              style={{ fontSize:"11px", fontWeight:700, letterSpacing:"0.2em", color:ACCENT, background:"rgba(255,40,120,0.08)", border:"1px solid rgba(255,40,120,0.4)", cursor:"pointer", padding:"10px 14px", fontFamily:"inherit", transition:"all 0.15s", width:"100%", textAlign:"center" }}
+              onMouseEnter={e => { e.currentTarget.style.background="rgba(255,40,120,0.18)"; e.currentTarget.style.borderColor="rgba(255,40,120,0.8)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background="rgba(255,40,120,0.08)"; e.currentTarget.style.borderColor="rgba(255,40,120,0.4)"; }}>
+              SIGN IN →
+            </button>
+          ) : (
+            <>
+              <NavLink to={`/users/${user?.id}`} style={{ textDecoration:"none" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:"10px", padding:"8px 10px", marginBottom:"8px", border:"1px solid transparent", transition:"border-color 0.15s" }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor="rgba(255,255,255,0.08)"}
+                  onMouseLeave={e => e.currentTarget.style.borderColor="transparent"}>
+                  <div style={{ width:"28px", height:"28px", borderRadius:"50%", background:"rgba(255,40,120,0.08)", border:"1px solid rgba(255,40,120,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <span style={{ fontSize:"12px", color:ACCENT, fontWeight:700 }}>
+                      {user?.gamer_tag?.[0]?.toUpperCase()}
+                    </span>
+                  </div>
+                  <div style={{ minWidth:0 }}>
+                    <p style={{ fontSize:"12px", fontWeight:600, color:"rgba(255,255,255,0.7)", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {user?.gamer_tag}
+                    </p>
+                  </div>
+                </div>
+              </NavLink>
 
-          <button onClick={() => { logout(); navigate("/login"); }}
-            style={{ fontSize:"10px", letterSpacing:"0.14em", color:"rgba(255,255,255,0.2)", background:"none", border:"none", cursor:"pointer", padding:"4px 10px", fontFamily:"inherit", transition:"color 0.15s", width:"100%", textAlign:"left" }}
-            onMouseEnter={e => e.currentTarget.style.color=ACCENT}
-            onMouseLeave={e => e.currentTarget.style.color="rgba(255,255,255,0.2)"}>
-            SIGN OUT →
-          </button>
+              <button onClick={() => { logout(); navigate("/login"); }}
+                style={{ fontSize:"10px", letterSpacing:"0.14em", color:"rgba(255,255,255,0.2)", background:"none", border:"none", cursor:"pointer", padding:"4px 10px", fontFamily:"inherit", transition:"color 0.15s", width:"100%", textAlign:"left" }}
+                onMouseEnter={e => e.currentTarget.style.color=ACCENT}
+                onMouseLeave={e => e.currentTarget.style.color="rgba(255,255,255,0.2)"}>
+                SIGN OUT →
+              </button>
+            </>
+          )}
         </div>
 
         {/* Bottom status bar */}

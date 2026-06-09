@@ -16,7 +16,7 @@ CREATE TABLE users (
   full_name VARCHAR(100) NOT NULL,
   email VARCHAR(100) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
-  profile_image TEXT NULL,
+  profile_image MEDIUMTEXT NULL,
   role ENUM('player','admin') NOT NULL DEFAULT 'player',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -27,7 +27,7 @@ CREATE TABLE users (
 CREATE TABLE games (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL UNIQUE,
-  logo TEXT NULL,
+  logo MEDIUMTEXT NULL,
   genre VARCHAR(50) NOT NULL,
   max_players_per_team INT NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -39,7 +39,7 @@ CREATE TABLE teams (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(80) NOT NULL,
   tag VARCHAR(6) NOT NULL UNIQUE,
-  logo TEXT NULL,
+  logo MEDIUMTEXT NULL,
   description TEXT NULL,
   captain_id INT UNSIGNED NULL,
   created_by INT UNSIGNED NULL,
@@ -91,7 +91,7 @@ CREATE TABLE tournaments (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_tournaments_game FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
   CONSTRAINT fk_tournaments_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-  CONSTRAINT chk_tournaments_max_teams CHECK (max_teams > 1),
+  CONSTRAINT chk_tournaments_max_teams CHECK (max_teams >= 4),
   CONSTRAINT chk_tournaments_dates CHECK (registration_deadline <= start_date)
 );
 

@@ -93,7 +93,7 @@ export default function WatchlistPage() {
       {loading ? (
         <p style={{ color: "rgba(255,255,255,0.4)" }}>Loading...</p>
       ) : tournaments.length === 0 ? (
-        <p style={{ color: "rgba(255,255,255,0.3)" }}>You aren't watching any tournaments yet.</p>
+        <p style={{ color: "rgba(255,255,255,0.3)" }}>No watched tournaments yet.</p>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
           {tournaments.map((t) => (

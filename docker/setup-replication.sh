@@ -10,12 +10,15 @@
 #   4. Configure Slaves to start replication FROM current position
 #   => Slaves have the schema already, replication only handles new data
 
-ROOT_PASS="root1234"
-REPL_USER="replicator"
-REPL_PASS="repl1234"
+: "${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is required}"
+: "${MYSQL_REPLICATION_USER:?MYSQL_REPLICATION_USER is required}"
+: "${MYSQL_REPLICATION_PASSWORD:?MYSQL_REPLICATION_PASSWORD is required}"
+: "${MYSQL_DATABASE:?MYSQL_DATABASE is required}"
 
-# TODO: Replace "project_db" with your actual database name
-DB_NAME="project_db"
+ROOT_PASS="${MYSQL_ROOT_PASSWORD}"
+REPL_USER="${MYSQL_REPLICATION_USER}"
+REPL_PASS="${MYSQL_REPLICATION_PASSWORD}"
+DB_NAME="${MYSQL_DATABASE}"
 M="mysql  -h127.0.0.1    -P3306 -uroot -p${ROOT_PASS} --protocol=TCP --connect-timeout=5"
 S1="mysql -hmysql-slave1 -P3306 -uroot -p${ROOT_PASS} --protocol=TCP --connect-timeout=5"
 S2="mysql -hmysql-slave2 -P3306 -uroot -p${ROOT_PASS} --protocol=TCP --connect-timeout=5"

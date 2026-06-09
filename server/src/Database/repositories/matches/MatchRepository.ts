@@ -1,12 +1,7 @@
 import { ResultSetHeader, RowDataPacket } from "mysql2";
-import {
-  CreateMatchData,
-  IMatchRepository,
-} from "../../../Domain/repositories/matches/IMatchRepository";
+import { CreateMatchData, IMatchRepository } from "../../../Domain/repositories/matches/IMatchRepository";
 import { Match } from "../../../Domain/models/Match";
-import { MatchPlayerDto } from "../../../Domain/DTOs/matches/MatchPlayerDto";
 import { UpdateMatchResultDto } from "../../../Domain/DTOs/matches/UpdateMatchResultDto";
-import { UpsertMatchPlayerDto } from "../../../Domain/DTOs/matches/UpsertMatchPlayerDto";
 import { DbManager } from "../../connection/DbConnectionPool";
 import { ILoggerService } from "../../../Domain/services/logger/ILoggerService";
 
@@ -34,75 +29,51 @@ export class MatchRepository implements IMatchRepository {
     };
   }
 
-  private mapPlayer(row: RowDataPacket): MatchPlayerDto {
-    return new MatchPlayerDto(
-      row.match_id,
-      row.team_id,
-      row.user_id,
-      row.created_at,
-      row.performance_notes ?? null,
-    );
-  }
-
   async findById(id: number): Promise<Match | null> {
     const res = await this.db.getReadConnection();
     if (!res) return null;
-
     try {
       const [rows] = await res.conn.execute<RowDataPacket[]>(
-        `SELECT *
-         FROM matches
-         WHERE id = ?`,
+        `SELECT * FROM matches WHERE id = ?`,
         [id],
       );
-
       return rows.length > 0 ? this.mapMatch(rows[0]) : null;
     } catch (err) {
-      this.logger.error("MatchRepository", "findById failed", err);
+      this.logger.error("MatchRepository", "findById failed", err as Error);
       return null;
     } finally {
       res.conn.release();
     }
   }
 
-  async findByTournamentId(tournamentId: number): Promise<Match[]> {
+  async findByTournamentId(
+    tournamentId: number,
+    filters: { round?: number; status?: string; teamId?: number } = {},
+  ): Promise<Match[]> {
     const res = await this.db.getReadConnection();
     if (!res) return [];
-
     try {
-      const [rows] = await res.conn.execute<RowDataPacket[]>(
-        `SELECT *
-         FROM matches
-         WHERE tournament_id = ?
-         ORDER BY round_number ASC, match_number ASC`,
-        [tournamentId],
-      );
+      let query = `SELECT * FROM matches WHERE tournament_id = ?`;
+      const params: (number | string)[] = [tournamentId];
 
+      if (filters.round !== undefined) {
+        query += ` AND round_number = ?`;
+        params.push(filters.round);
+      }
+      if (filters.status) {
+        query += ` AND status = ?`;
+        params.push(filters.status);
+      }
+      if (filters.teamId !== undefined) {
+        query += ` AND (team1_id = ? OR team2_id = ? OR winner_team_id = ?)`;
+        params.push(filters.teamId, filters.teamId, filters.teamId);
+      }
+
+      query += ` ORDER BY round_number ASC, match_number ASC`;
+      const [rows] = await res.conn.execute<RowDataPacket[]>(query, params);
       return rows.map((row) => this.mapMatch(row));
     } catch (err) {
-      this.logger.error("MatchRepository", "findByTournamentId failed", err);
-      return [];
-    } finally {
-      res.conn.release();
-    }
-  }
-
-  async findApprovedTeamIdsByTournamentId(tournamentId: number): Promise<number[]> {
-    const res = await this.db.getMasterConnection();
-    if (!res) return [];
-
-    try {
-      const [rows] = await res.conn.execute<RowDataPacket[]>(
-        `SELECT team_id
-         FROM tournament_registrations
-         WHERE tournament_id = ? AND status = 'confirmed'
-         ORDER BY registered_at ASC`,
-        [tournamentId],
-      );
-
-      return rows.map((row) => row.team_id);
-    } catch (err) {
-      this.logger.error("MatchRepository", "findApprovedTeamIdsByTournamentId failed", err);
+      this.logger.error("MatchRepository", "findByTournamentId failed", err as Error);
       return [];
     } finally {
       res.conn.release();
@@ -112,11 +83,9 @@ export class MatchRepository implements IMatchRepository {
   async create(data: CreateMatchData): Promise<Match> {
     const res = await this.db.getWriteConnection();
     if (!res) throw new Error("No DB connection");
-
     try {
       const [result] = await res.conn.execute<ResultSetHeader>(
-        `INSERT INTO matches
-         (tournament_id, round_number, match_number, team1_id, team2_id, scheduled_at)
+        `INSERT INTO matches (tournament_id, round_number, match_number, team1_id, team2_id, scheduled_at)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [
           data.tournament_id,
@@ -127,16 +96,14 @@ export class MatchRepository implements IMatchRepository {
           data.scheduled_at ?? null,
         ],
       );
-
       const [rows] = await res.conn.execute<RowDataPacket[]>(
         `SELECT * FROM matches WHERE id = ?`,
         [result.insertId],
       );
       if (rows.length === 0) throw new Error("Failed to fetch created match");
-
       return this.mapMatch(rows[0]);
     } catch (err) {
-      this.logger.error("MatchRepository", "create failed", err);
+      this.logger.error("MatchRepository", "create failed", err as Error);
       throw err;
     } finally {
       res.conn.release();
@@ -145,212 +112,44 @@ export class MatchRepository implements IMatchRepository {
 
   async createMany(matches: CreateMatchData[]): Promise<Match[]> {
     const created: Match[] = [];
-
     for (const match of matches) {
       const createdMatch = await this.create(match);
       created.push(createdMatch);
     }
-
     return created;
   }
 
-  async updateResult(
-    matchId: number,
-    dto: UpdateMatchResultDto,
-  ): Promise<Match | null> {
+  async updateResult(matchId: number, dto: UpdateMatchResultDto): Promise<Match | null> {
     const res = await this.db.getWriteConnection();
     if (!res) return null;
-
     try {
       const [result] = await res.conn.execute<ResultSetHeader>(
         `UPDATE matches
-         SET team1_score = ?,
-             team2_score = ?,
-             winner_team_id = ?,
-             status = 'completed'
+         SET team1_score = ?, team2_score = ?, winner_team_id = ?, status = 'completed'
          WHERE id = ?`,
         [dto.team1_score, dto.team2_score, dto.winner_team_id, matchId],
       );
-
       if (result.affectedRows === 0) return null;
-
       return this.findById(matchId);
     } catch (err) {
-      this.logger.error("MatchRepository", "updateResult failed", err);
+      this.logger.error("MatchRepository", "updateResult failed", err as Error);
       return null;
     } finally {
       res.conn.release();
     }
   }
 
-  async updateNextMatchTeam(
-    matchId: number,
-    teamId: number,
-    slot: "team1_id" | "team2_id",
-  ): Promise<boolean> {
+  async updateNextMatchTeam(matchId: number, teamId: number, slot: "team1_id" | "team2_id"): Promise<boolean> {
     const res = await this.db.getWriteConnection();
     if (!res) return false;
-
     try {
       const [result] = await res.conn.execute<ResultSetHeader>(
-        `UPDATE matches
-         SET ${slot} = ?
-         WHERE id = ?`,
+        `UPDATE matches SET ${slot} = ? WHERE id = ?`,
         [teamId, matchId],
       );
-
       return result.affectedRows > 0;
     } catch (err) {
-      this.logger.error("MatchRepository", "updateNextMatchTeam failed", err);
-      return false;
-    } finally {
-      res.conn.release();
-    }
-  }
-
-  async addPlayer(
-    matchId: number,
-    dto: UpsertMatchPlayerDto,
-  ): Promise<MatchPlayerDto | null> {
-    const res = await this.db.getWriteConnection();
-    if (!res) return null;
-
-    try {
-      await res.conn.execute<ResultSetHeader>(
-        `INSERT INTO match_players (match_id, team_id, user_id, performance_notes)
-         VALUES (?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE team_id = VALUES(team_id), performance_notes = VALUES(performance_notes)`,
-        [matchId, dto.team_id, dto.user_id, dto.performance_notes ?? null],
-      );
-
-      const [rows] = await res.conn.execute<RowDataPacket[]>(
-        `SELECT match_id, team_id, user_id, performance_notes, created_at
-         FROM match_players
-         WHERE match_id = ? AND user_id = ?`,
-        [matchId, dto.user_id],
-      );
-
-      return rows.length > 0 ? this.mapPlayer(rows[0]) : null;
-    } catch (err) {
-      this.logger.error("MatchRepository", "addPlayer failed", err);
-      return null;
-    } finally {
-      res.conn.release();
-    }
-  }
-
-  async updatePlayer(
-    matchId: number,
-    userId: number,
-    dto: UpsertMatchPlayerDto,
-  ): Promise<MatchPlayerDto | null> {
-    const res = await this.db.getWriteConnection();
-    if (!res) return null;
-
-    try {
-      const [result] = await res.conn.execute<ResultSetHeader>(
-        `UPDATE match_players
-         SET team_id = ?, performance_notes = ?
-         WHERE match_id = ? AND user_id = ?`,
-        [dto.team_id, dto.performance_notes ?? null, matchId, userId],
-      );
-
-      if (result.affectedRows === 0) return null;
-
-      const [rows] = await res.conn.execute<RowDataPacket[]>(
-        `SELECT match_id, team_id, user_id, performance_notes, created_at
-         FROM match_players
-         WHERE match_id = ? AND user_id = ?`,
-        [matchId, userId],
-      );
-
-      return rows.length > 0 ? this.mapPlayer(rows[0]) : null;
-    } catch (err) {
-      this.logger.error("MatchRepository", "updatePlayer failed", err);
-      return null;
-    } finally {
-      res.conn.release();
-    }
-  }
-
-  async removePlayer(matchId: number, userId: number): Promise<boolean> {
-    const res = await this.db.getWriteConnection();
-    if (!res) return false;
-
-    try {
-      const [result] = await res.conn.execute<ResultSetHeader>(
-        `DELETE FROM match_players
-         WHERE match_id = ? AND user_id = ?`,
-        [matchId, userId],
-      );
-
-      return result.affectedRows > 0;
-    } catch (err) {
-      this.logger.error("MatchRepository", "removePlayer failed", err);
-      return false;
-    } finally {
-      res.conn.release();
-    }
-  }
-
-  async findPlayersByMatchId(matchId: number): Promise<MatchPlayerDto[]> {
-    const res = await this.db.getReadConnection();
-    if (!res) return [];
-
-    try {
-      const [rows] = await res.conn.execute<RowDataPacket[]>(
-        `SELECT match_id, team_id, user_id, performance_notes, created_at
-         FROM match_players
-         WHERE match_id = ?
-         ORDER BY team_id ASC, user_id ASC`,
-        [matchId],
-      );
-
-      return rows.map((row) => this.mapPlayer(row));
-    } catch (err) {
-      this.logger.error("MatchRepository", "findPlayersByMatchId failed", err);
-      return [];
-    } finally {
-      res.conn.release();
-    }
-  }
-
-  async isUserTeamCaptain(userId: number, teamId: number): Promise<boolean> {
-    const res = await this.db.getReadConnection();
-    if (!res) return false;
-
-    try {
-      const [rows] = await res.conn.execute<RowDataPacket[]>(
-        `SELECT 1
-         FROM teams
-         WHERE id = ? AND captain_id = ?`,
-        [teamId, userId],
-      );
-
-      return rows.length > 0;
-    } catch (err) {
-      this.logger.error("MatchRepository", "isUserTeamCaptain failed", err);
-      return false;
-    } finally {
-      res.conn.release();
-    }
-  }
-
-  async isUserTeamMember(userId: number, teamId: number): Promise<boolean> {
-    const res = await this.db.getReadConnection();
-    if (!res) return false;
-
-    try {
-      const [rows] = await res.conn.execute<RowDataPacket[]>(
-        `SELECT 1
-         FROM team_members
-         WHERE team_id = ? AND user_id = ?`,
-        [teamId, userId],
-      );
-
-      return rows.length > 0;
-    } catch (err) {
-      this.logger.error("MatchRepository", "isUserTeamMember failed", err);
+      this.logger.error("MatchRepository", "updateNextMatchTeam failed", err as Error);
       return false;
     } finally {
       res.conn.release();

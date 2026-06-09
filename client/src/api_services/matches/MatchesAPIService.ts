@@ -23,6 +23,7 @@ export interface MatchPlayer {
   team_id: number;
   user_id: number;
   created_at: string;
+  performance_notes: string | null;
 }
 
 export interface UpdateResultDto {
@@ -34,6 +35,7 @@ export interface UpdateResultDto {
 export interface UpsertPlayerDto {
   user_id: number;
   team_id: number;
+  performance_notes?: string | null;
 }
 
 function authHeader() {
@@ -52,9 +54,10 @@ export const MatchesAPIService = {
     return res.data.data;
   },
 
-  async getByTournament(tournamentId: number): Promise<Match[]> {
+  async getByTournament(tournamentId: number, filters?: { round?: number; status?: string; teamId?: number }): Promise<Match[]> {
     const res = await axios.get(`${BASE}/tournaments/${tournamentId}/matches`, {
       headers: authHeader(),
+      params: filters,
     });
     return res.data.data;
   },
@@ -84,7 +87,7 @@ export const MatchesAPIService = {
     return res.data.data;
   },
 
-  async updatePlayer(matchId: number, userId: number, dto: { team_id: number }): Promise<MatchPlayer> {
+  async updatePlayer(matchId: number, userId: number, dto: { team_id: number; performance_notes?: string | null }): Promise<MatchPlayer> {
     const res = await axios.put(`${BASE}/matches/${matchId}/players/${userId}`, dto, {
       headers: authHeader(),
     });

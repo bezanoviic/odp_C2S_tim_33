@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { TeamService } from "../../Services/teams/TeamService";
+import { ITeamService } from "../../Domain/services/teams/ITeamService";
 
 type AuthenticatedRequest = Request & {
   user: {
@@ -30,15 +30,16 @@ function isValidInvitationStatus(value: string): value is InvitationStatus {
 }
 
 export class TeamController {
-  public constructor(private readonly service: TeamService) {}
+  public constructor(private readonly service: ITeamService) {}
 
   async createTeam(req: Request, res: Response): Promise<void> {
-    const { name, tag, description } = req.body;
+    const { name, tag, description, logo } = req.body;
     const userId = (req as AuthenticatedRequest).user.id;
 
     if (
       typeof name !== "string" ||
       typeof tag !== "string" ||
+      (logo !== null && logo !== undefined && typeof logo !== "string") ||
       (description !== null && description !== undefined && typeof description !== "string")
     ) {
       res.status(400).json({ error: "Invalid request body" });
@@ -73,6 +74,7 @@ export class TeamController {
       name.trim(),
       normalizedTag,
       normalizedDescription,
+      logo ?? null,
       userId
     );
 
@@ -180,7 +182,7 @@ export class TeamController {
 
   async updateTeam(req: Request, res: Response): Promise<void> {
     const teamId = Number(req.params.id);
-    const { name, tag, description } = req.body;
+    const { name, tag, description, logo } = req.body;
     const userId = (req as AuthenticatedRequest).user.id;
 
     if (!isValidId(teamId)) {
@@ -191,6 +193,7 @@ export class TeamController {
     if (
       typeof name !== "string" ||
       typeof tag !== "string" ||
+      (logo !== null && logo !== undefined && typeof logo !== "string") ||
       (description !== null && description !== undefined && typeof description !== "string")
     ) {
       res.status(400).json({ error: "Invalid request body" });
@@ -219,6 +222,7 @@ export class TeamController {
       name.trim(),
       tag.trim(),
       normalizedDescription,
+      logo ?? null,
       userId
     );
 

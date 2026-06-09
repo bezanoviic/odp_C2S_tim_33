@@ -1,5 +1,6 @@
 import { Request, Response, Router } from "express";
 import { IUserService }  from "../../Domain/services/users/IUserService";
+import { IAuditService } from "../../Domain/services/audit/IAuditService";
 import { authenticate }  from "../../Middlewares/authentification/AuthMiddleware";
 import { authorize }     from "../../Middlewares/authorization/AuthorizeMiddleware";
 import { UserRole }      from "../../Domain/enums/UserRole";
@@ -7,7 +8,10 @@ import { UserRole }      from "../../Domain/enums/UserRole";
 export class UserController {
   private readonly router = Router();
 
-  public constructor(private readonly userService: IUserService) {
+  public constructor(
+    private readonly userService: IUserService,
+    private readonly auditService: IAuditService,
+  ) {
     this.router.get("/users/all",       authenticate, authorize(UserRole.ADMIN), this.getAll.bind(this));
     this.router.get("/users/search",    authenticate, this.search.bind(this));
     this.router.get("/users/:id",       authenticate, this.getById.bind(this));
@@ -80,6 +84,9 @@ export class UserController {
       }
 
       const ok = await this.userService.updateProfile(id, { full_name, profile_image, gamer_tag, email });
+      if (ok) {
+        await this.auditService.log(req.user!.id, "UPDATE_PROFILE", "user", id, `Updated profile for user ${id}`);
+      }
       res.status(ok ? 200 : 404).json({ success: ok, message: ok ? "Profile updated" : "User not found" });
     } catch {
       res.status(500).json({ success: false, message: "Internal server error" });
@@ -91,10 +98,13 @@ export class UserController {
       const id = parseInt(String(req.params.id), 10);
       const { role } = req.body as { role?: string };
       if (isNaN(id)) { res.status(400).json({ success: false, message: "Invalid id" }); return; }
-      if (!role || !["player", "admin"].includes(role)) {
-        res.status(400).json({ success: false, message: "Role must be 'player' or 'admin'" }); return;
+      if (!role || !Object.values(UserRole).includes(role as UserRole)) {
+        res.status(400).json({ success: false, message: `Role must be one of: ${Object.values(UserRole).join(", ")}` }); return;
       }
       const ok = await this.userService.changeRole(id, role);
+      if (ok) {
+        await this.auditService.log(req.user!.id, "CHANGE_ROLE", "user", id, `Changed user ${id} role to '${role}'`);
+      }
       res.status(ok ? 200 : 404).json({ success: ok, message: ok ? "Role updated" : "User not found" });
     } catch {
       res.status(500).json({ success: false, message: "Internal server error" });

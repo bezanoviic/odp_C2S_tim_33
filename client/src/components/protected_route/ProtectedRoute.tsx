@@ -4,7 +4,7 @@ import { useAuth } from "../../hooks/auth/useAuthHook";
 import { Layout } from "../layout/Layout";
 import { Spinner } from "../ui/UI";
 
-export const ProtectedRoute: React.FC<{ children: React.ReactNode; requiredRole?: string }> = ({ children, requiredRole }) => {
+export const ProtectedRoute: React.FC<{ children: React.ReactNode; requiredRole?: string; allowGuest?: boolean }> = ({ children, requiredRole, allowGuest }) => {
   const { isAuthenticated, user, isLoading, logout } = useAuth();
   const location = useLocation();
 
@@ -14,7 +14,10 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode; requiredRole?
     </div>
   );
 
-  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
+  if (!isAuthenticated) {
+    if (allowGuest) return <Layout>{children}</Layout>;
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
 
   if (requiredRole && user?.role !== requiredRole) return (
     <div className="min-h-screen bg-[#080808] flex items-center justify-center">

@@ -24,21 +24,28 @@ export class AuditLogRepository implements IAuditLogRepository {
   }
 
   async findAll(page: number, limit: number): Promise<AuditLogDto[]> {
-    const res = await this.db.getMasterConnection();
+    const res = await this.db.getReadConnection();
     if (!res) return [];
-    const offset = (page - 1) * limit;
     try {
-      const sql = `SELECT a.*, u.gamer_tag FROM audit_logs a LEFT JOIN users u ON u.id = a.user_id ORDER BY a.created_at DESC LIMIT ${limit} OFFSET ${offset}`;
-      const [rows] = await res.conn.execute<RowDataPacket[]>(sql);
+      const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 100);
+      const safePage = Math.max(Math.trunc(page), 1);
+      const safeOffset = (safePage - 1) * safeLimit;
+      const [rows] = await res.conn.query<RowDataPacket[]>(
+        `SELECT a.*, u.gamer_tag
+         FROM audit_logs a
+         LEFT JOIN users u ON u.id = a.user_id
+         ORDER BY a.created_at DESC
+         LIMIT ${safeLimit} OFFSET ${safeOffset}`,
+      );
       return rows.map((r) => this.map(r));
     } catch (err) {
-      this.logger.error("AuditLogRepository", "findAll failed", err);
+      this.logger.error("AuditLogRepository", "findAll failed", err as Error);
       return [];
     } finally { res.conn.release(); }
   }
 
   async countAll(): Promise<number> {
-    const res = await this.db.getMasterConnection();
+    const res = await this.db.getReadConnection();
     if (!res) return 0;
     try {
       const [rows] = await res.conn.execute<RowDataPacket[]>(
@@ -46,7 +53,7 @@ export class AuditLogRepository implements IAuditLogRepository {
       );
       return rows[0].cnt;
     } catch (err) {
-      this.logger.error("AuditLogRepository", "countAll failed", err);
+      this.logger.error("AuditLogRepository", "countAll failed", err as Error);
       return 0;
     } finally { res.conn.release(); }
   }
@@ -70,7 +77,7 @@ export class AuditLogRepository implements IAuditLogRepository {
       }
       return true;
     } catch (err) {
-      this.logger.error("AuditLogRepository", "create failed", err);
+      this.logger.error("AuditLogRepository", "create failed", err as Error);
       throw err;
     } finally { res.conn.release(); }
   }

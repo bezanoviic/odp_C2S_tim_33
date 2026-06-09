@@ -19,7 +19,7 @@ export class WatchlistRepository implements IWatchlistRepository {
       );
       return true;
     } catch (err) {
-      this.logger.error("WatchlistRepository", "add failed", err);
+      this.logger.error("WatchlistRepository", "add failed", err as Error);
       return false;
     } finally { res.conn.release(); }
   }
@@ -34,13 +34,13 @@ export class WatchlistRepository implements IWatchlistRepository {
       );
       return true;
     } catch (err) {
-      this.logger.error("WatchlistRepository", "remove failed", err);
+      this.logger.error("WatchlistRepository", "remove failed", err as Error);
       return false;
     } finally { res.conn.release(); }
   }
 
   async findByUserId(userId: number): Promise<number[]> {
-    const res = await this.db.getMasterConnection();
+      const res = await this.db.getReadConnection();
     if (!res) return [];
     try {
       const [rows] = await res.conn.execute<RowDataPacket[]>(
@@ -49,13 +49,13 @@ export class WatchlistRepository implements IWatchlistRepository {
       );
       return rows.map((r) => r.tournament_id);
     } catch (err) {
-      this.logger.error("WatchlistRepository", "findByUserId failed", err);
+      this.logger.error("WatchlistRepository", "findByUserId failed", err as Error);
       return [];
     } finally { res.conn.release(); }
   }
 
   async exists(userId: number, tournamentId: number): Promise<boolean> {
-    const res = await this.db.getMasterConnection();
+      const res = await this.db.getReadConnection();
     if (!res) return false;
     try {
       const [rows] = await res.conn.execute<RowDataPacket[]>(
@@ -64,7 +64,7 @@ export class WatchlistRepository implements IWatchlistRepository {
       );
       return rows.length > 0;
     } catch (err) {
-      this.logger.error("WatchlistRepository", "exists failed", err);
+      this.logger.error("WatchlistRepository", "exists failed", err as Error);
       return false;
     } finally { res.conn.release(); }
   }

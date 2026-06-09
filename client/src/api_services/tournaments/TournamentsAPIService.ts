@@ -27,6 +27,16 @@ export interface CreateTournamentDto {
   start_date: string;
 }
 
+export interface TournamentRegistration {
+  tournament_id: number;
+  tournament_name?: string;
+  team_id: number;
+  team_name?: string;
+  team_tag?: string;
+  status: string;
+  registered_at: string;
+}
+
 function authHeader() {
   const token = localStorage.getItem("authToken");
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -85,8 +95,17 @@ export const TournamentsAPIService = {
     await axios.delete(`${API_URL}/${tournamentId}/register/${teamId}`, { headers: authHeader() });
   },
 
-  async getRegistrations(tournamentId: number): Promise<{ team_id: number; status: string; registered_at: string }[]> {
+  async getRegistrations(tournamentId: number): Promise<TournamentRegistration[]> {
     const res = await axios.get(`${API_URL}/${tournamentId}/registrations`);
     return res.data.data;
+  },
+
+  async getAllRegistrations(): Promise<TournamentRegistration[]> {
+    const res = await axios.get("/api/v1/registrations", { headers: authHeader() });
+    return res.data.data;
+  },
+
+  async updateRegistrationStatus(tournamentId: number, teamId: number, status: "pending" | "confirmed" | "disqualified"): Promise<void> {
+    await axios.patch(`${API_URL}/${tournamentId}/registrations/${teamId}`, { status }, { headers: authHeader() });
   },
 };

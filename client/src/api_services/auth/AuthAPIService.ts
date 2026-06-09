@@ -3,7 +3,7 @@ import type { AuthResponse } from "../../types/auth/AuthResponse";
 import type { IAuthAPIService } from "./IAuthAPIService";
 
 const BASE = "/api/v1/auth";
-const err = (e: unknown, fallback: string): AuthResponse => ({
+const err = (e: Error, fallback: string): AuthResponse => ({
   success: false,
   message: axios.isAxiosError(e) ? (e.response?.data as { message?: string })?.message ?? fallback : fallback,
 });

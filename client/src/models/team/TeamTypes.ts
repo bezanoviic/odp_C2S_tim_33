@@ -14,6 +14,7 @@ export type TeamDto = {
   id: number;
   name: string;
   tag: string;
+  logo?: string | null;
   description: string | null;
   created_by: number;
   captain_id: number;
@@ -24,6 +25,7 @@ export type TeamDto = {
 export type CreateTeamDto = {
   name: string;
   tag: string;
+  logo?: string | null;
   description: string | null;
 };
 

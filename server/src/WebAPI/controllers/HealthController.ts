@@ -28,6 +28,7 @@ export class HealthController {
       host:      n.host,
       port:      n.port,
       status:    n.status,
+      latencyMs: n.latencyMs,
       lastCheck: n.lastCheck,
     }));
     res.status(200).json({ success: true, data: result });

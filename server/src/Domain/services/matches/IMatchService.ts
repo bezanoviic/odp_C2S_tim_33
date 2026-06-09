@@ -5,7 +5,7 @@ import { UpsertMatchPlayerDto } from "../../DTOs/matches/UpsertMatchPlayerDto";
 
 export interface IMatchService {
   getById(id: number): Promise<MatchDto | null>;
-  getByTournamentId(tournamentId: number): Promise<MatchDto[]>;
+  getByTournamentId(tournamentId: number, filters?: { round?: number; status?: string; teamId?: number }): Promise<MatchDto[]>;
 
   generateBracket(tournamentId: number): Promise<MatchDto[]>;
   updateResult(matchId: number, dto: UpdateMatchResultDto): Promise<MatchDto | null>;
