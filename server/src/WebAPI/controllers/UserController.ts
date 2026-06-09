@@ -1,8 +1,8 @@
-import { Request, Response, Router }  from "express";
-import { IUserService }               from "../../Domain/services/users/IUserService";
-import { authenticate }               from "../../Middlewares/authentification/AuthMiddleware";
-import { authorize }                  from "../../Middlewares/authorization/AuthorizeMiddleware";
-import { UserRole }                   from "../../Domain/enums/UserRole";
+import { Request, Response, Router } from "express";
+import { IUserService }  from "../../Domain/services/users/IUserService";
+import { authenticate }  from "../../Middlewares/authentification/AuthMiddleware";
+import { authorize }     from "../../Middlewares/authorization/AuthorizeMiddleware";
+import { UserRole }      from "../../Domain/enums/UserRole";
 
 export class UserController {
   private readonly router = Router();
@@ -34,7 +34,7 @@ export class UserController {
     }
   }
 
-   private async changeRole(req: Request, res: Response): Promise<void> {
+  private async changeRole(req: Request, res: Response): Promise<void> {
     try {
       const id   = parseInt(String(req.params.id), 10);
       const { role } = req.body as { role?: string };

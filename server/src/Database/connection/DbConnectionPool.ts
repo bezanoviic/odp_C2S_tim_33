@@ -9,7 +9,7 @@ dotenv.config();
 
 const DB_NAME = process.env.DB_NAME ?? "project_db";
 
-const masterPool: Pool = mysql.createPool({
+export const masterPool: Pool = mysql.createPool({
   host:     process.env.DB_MASTER_HOST     ?? "localhost",
   port:     parseInt(process.env.DB_MASTER_PORT ?? "3306", 10),
   user:     process.env.DB_MASTER_USER     ?? "root",
@@ -145,4 +145,5 @@ export class DbManager {
   public getNodes(): DbNode[] { return [this.master.node, ...this.slaves.map((s) => s.node)]; }
   public getSlaveRrIndex(): number { return this.slaveRrIndex; }
   public stop(): void { if (this.healthTimer) clearInterval(this.healthTimer); }
+
 }

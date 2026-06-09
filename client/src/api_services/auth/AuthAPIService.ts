@@ -14,7 +14,7 @@ export const authApi: IAuthAPIService = {
       .then(r => r.data).catch(e => err(e, "Login failed"));
   },
   async register(gamer_tag, full_name, email, password) {
-    return axios.post<AuthResponse>(`${BASE}/register`, { gamer_tag, full_name, email, password, })
+    return axios.post<AuthResponse>(`${BASE}/register`, { gamer_tag, full_name, email, password })
       .then(r => r.data).catch(e => err(e, "Registration failed"));
   },
 };

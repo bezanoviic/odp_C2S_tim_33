@@ -1,9 +1,9 @@
-import bcrypt               from "bcryptjs";
-import { IAuthService }     from "../../Domain/services/auth/IAuthService";
-import { IUserRepository }  from "../../Domain/repositories/users/IUserRepository";
-import { AuthUserDto }      from "../../Domain/DTOs/auth/AuthUserDto";
-import { UserRole }         from "../../Domain/enums/UserRole";
-import { User }             from "../../Domain/models/User";
+import bcrypt from "bcryptjs";
+import { IAuthService }    from "../../Domain/services/auth/IAuthService";
+import { IUserRepository } from "../../Domain/repositories/users/IUserRepository";
+import { AuthUserDto }     from "../../Domain/DTOs/auth/AuthUserDto";
+import { UserRole }        from "../../Domain/enums/UserRole";
+import { User }            from "../../Domain/models/User";
 
 export class AuthService implements IAuthService {
   private readonly saltRounds = parseInt(process.env.SALT_ROUNDS ?? "10", 10);

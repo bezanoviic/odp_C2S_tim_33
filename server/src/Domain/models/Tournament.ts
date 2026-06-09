@@ -8,5 +8,6 @@ export interface Tournament {
   registration_deadline: Date;
   start_date: Date;
   status: "upcoming" | "ongoing" | "completed" | "cancelled";
+  created_by: number | null;
   created_at: Date;
 }

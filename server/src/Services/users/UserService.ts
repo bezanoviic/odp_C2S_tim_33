@@ -1,13 +1,13 @@
-import { IUserService }     from "../../Domain/services/users/IUserService";
-import { IUserRepository }  from "../../Domain/repositories/users/IUserRepository";
-import { UserDto }          from "../../Domain/DTOs/users/UserDto";
+import { IUserService }    from "../../Domain/services/users/IUserService";
+import { IUserRepository } from "../../Domain/repositories/users/IUserRepository";
+import { UserDto }         from "../../Domain/DTOs/users/UserDto";
 
 export class UserService implements IUserService {
   public constructor(private readonly userRepo: IUserRepository) {}
 
   async getAll(): Promise<UserDto[]> {
     const users = await this.userRepo.findAll();
-     return users.map((u) => new UserDto(u.id, u.gamer_tag, u.full_name, u.email, u.role, u.profile_image));
+    return users.map((u) => new UserDto(u.id, u.gamer_tag, u.full_name, u.email, u.role, u.profile_image));
   }
 
   async getById(id: number): Promise<UserDto | null> {
@@ -16,7 +16,7 @@ export class UserService implements IUserService {
     return new UserDto(u.id, u.gamer_tag, u.full_name, u.email, u.role, u.profile_image);
   }
 
- changeRole(id: number, role: string): Promise<boolean> {
+  changeRole(id: number, role: string): Promise<boolean> {
     return this.userRepo.changeRole(id, role);
   }
 }

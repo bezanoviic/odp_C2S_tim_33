@@ -9,15 +9,15 @@ export function RegisterForm({ authApi }: { authApi: IAuthAPIService }) {
   const [form, setForm]       = useState<FormState>({ gamer_tag: "", full_name: "", email: "", password: "" });
   const [error, setError]     = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
 
   const validate = (): string | null => {
     if (!/^[a-zA-Z0-9\-\.]{3,30}$/.test(form.gamer_tag))
-      return "Gamer Tag: 3-30 chars, letters/numbers/hyphen/dot";
+      return "Gamer tag: 3-30 chars, letters/numbers/hyphen/dot";
     if (form.full_name.trim().length < 2)
-      return "Full Name must be at least 2 characters";
+      return "Full name must be at least 2 characters";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
       return "Invalid email address";
     if (form.password.length < 8 || !/[A-Z]/.test(form.password) || !/[0-9]/.test(form.password))
@@ -37,7 +37,7 @@ export function RegisterForm({ authApi }: { authApi: IAuthAPIService }) {
   };
 
   const fields: { key: keyof FormState; label: string; type: string; placeholder: string }[] = [
-    { key: "gamer_tag",  label: "Gamer Tag",  type: "text",     placeholder: "your_gamertag (3-30 chars)" },
+    { key: "gamer_tag",  label: "Gamer Tag",  type: "text",     placeholder: "your.tag (3-30 chars)" },
     { key: "full_name",  label: "Full Name",  type: "text",     placeholder: "John Doe" },
     { key: "email",      label: "Email",      type: "email",    placeholder: "you@email.com" },
     { key: "password",   label: "Password",   type: "password", placeholder: "Min 8 chars, 1 uppercase, 1 digit" },

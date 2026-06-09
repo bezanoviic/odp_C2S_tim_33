@@ -1,25 +1,26 @@
-CREATE TABLE users (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  gamer_tag VARCHAR(30) NOT NULL UNIQUE,
-  email VARCHAR(100) NOT NULL UNIQUE,
-  password_hash VARCHAR(255) NOT NULL,
-  name VARCHAR(100) NOT NULL,
-  profile_image TEXT NULL,
-  role ENUM('player','admin') NOT NULL DEFAULT 'player',
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+CREATE TABLE users(
+id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+gamer_tag VARCHAR(30) NOT NULL UNIQUE,
+full_name VARCHAR(100) NOT NULL,
+email VARCHAR(100) NOT NULL UNIQUE,
+password_hash VARCHAR(255) NOT NULL,
+profile_image TEXT NULL,
+role ENUM('player','admin') NOT NULL DEFAULT 'player',
+created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
 );
 
 CREATE TABLE games(
  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
  name VARCHAR(100) NOT NULL UNIQUE,
  logo TEXT NULL,
- genre VARCHAR(100) NOT NULL,
+ genre VARCHAR(50) NOT NULL,
  max_players_per_team INT NOT NULL,
  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
- CONSTRAINT chk_users_gamer_tag CHECK (CHAR_LENGTH(gamer_tag)>=3)
  CONSTRAINT chk_users_email CHECK (CHAR_LENGTH(email)>=5 AND email LIKE '%@%.%'),
+ CONSTRAINT chk_users_gamer_tag CHECK (CHAR_LENGTH(gamer_tag)>=3)
 );
 
 CREATE TABLE teams(
@@ -47,7 +48,6 @@ CREATE TABLE team_members(
 );
 
 CREATE INDEX idx_team_members_user_id ON team_members(user_id);
-
 CREATE TABLE tournaments(
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   game_id INT UNSIGNED NOT NULL,
@@ -67,6 +67,10 @@ CREATE TABLE tournaments(
   CONSTRAINT chk_tournaments_prize_pool CHECK (prize_pool >= 0),
   CONSTRAINT chk_tournaments_dates CHECK (start_date>registration_deadline)
 );
+
+
+
+
 
 CREATE TABLE tournament_registrations (
 tournament_id INT UNSIGNED NOT NULL,
@@ -137,6 +141,7 @@ ON DELETE CASCADE
 
 CREATE INDEX idx_match_players_user_id ON match_players(user_id);
 CREATE INDEX idx_match_players_team_id ON match_players(team_id);
+
 
 CREATE TABLE user_watchlist (
 user_id INT UNSIGNED NOT NULL,

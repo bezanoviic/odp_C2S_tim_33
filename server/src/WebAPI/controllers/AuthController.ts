@@ -1,16 +1,16 @@
-import { Request, Response, Router }  from "express";
-import jwt                            from "jsonwebtoken";
-import { IAuthService }               from "../../Domain/services/auth/IAuthService";
-import { ValidationResult }           from "../../Domain/types/ValidationResult";
-import { validateLogin }              from "../validators/auth/validateLogin";
-import { validateRegister }           from "../validators/auth/validateRegister";
+import { Request, Response, Router } from "express";
+import jwt from "jsonwebtoken";
+import { IAuthService }     from "../../Domain/services/auth/IAuthService";
+import { ValidationResult } from "../../Domain/types/ValidationResult";
+import { validateLogin }    from "../validators/auth/validateLogin";
+import { validateRegister } from "../validators/auth/validateRegister";
 
 export class AuthController {
   private readonly router = Router();
 
   public constructor(private readonly authService: IAuthService) {
-     this.router.post("/auth/login",    this.login.bind(this));
-    this.router.post("/auth/register",  this.register.bind(this));
+    this.router.post("/auth/login",    this.login.bind(this));
+    this.router.post("/auth/register", this.register.bind(this));
   }
 
   private async login(req: Request, res: Response): Promise<void> {

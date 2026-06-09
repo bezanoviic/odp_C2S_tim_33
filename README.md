@@ -1,6 +1,6 @@
 # Project Template
 
-Full-stack TypeScript template with:a
+Full-stack TypeScript template with:
 - **Client**: React 19 + Vite + TailwindCSS v4 + React Router v7
 - **Server**: Node.js + Express 5 + TypeScript
 - **Database**: MySQL 8 with Master + 2 Slave replication via Docker

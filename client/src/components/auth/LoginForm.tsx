@@ -4,10 +4,10 @@ import type { IAuthAPIService } from "../../api_services/auth/IAuthAPIService";
 
 export function LoginForm({ authApi }: { authApi: IAuthAPIService }) {
   const { login } = useAuth();
-  const [gamer_tag, setGamerTag]  = useState("");
-  const [password, setPassword]   = useState("");
-  const [error, setError]         = useState("");
-  const [loading, setLoading]     = useState(false);
+  const [gamer_tag, setGamerTag] = useState("");
+  const [password, setPassword]  = useState("");
+  const [error, setError]        = useState("");
+  const [loading, setLoading]    = useState(false);
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); setError(""); setLoading(true);
@@ -38,7 +38,7 @@ export function LoginForm({ authApi }: { authApi: IAuthAPIService }) {
           <label className="block text-xs text-white/40 mb-2 font-medium">Gamer Tag</label>
           <input type="text" value={gamer_tag} onChange={e => setGamerTag(e.target.value)} required
             className="w-full bg-white/4 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 focus:outline-none focus:border-white/30 transition-colors"
-            placeholder="your_gamertag" />
+            placeholder="your.tag" />
         </div>
         <div>
           <label className="block text-xs text-white/40 mb-2 font-medium">Password</label>
