@@ -178,5 +178,18 @@ export class TeamRepository {
        WHERE id = ?`,
       [newCaptainId, teamId]
     );
+    
   }
+  
+async getInvitationById(invitationId: number): Promise<RowDataPacket | null> {
+  const [rows] = await masterPool.execute<RowDataPacket[]>(
+    `SELECT *
+     FROM team_invitations
+     WHERE id = ?`,
+    [invitationId]
+  );
+
+  return rows.length > 0 ? rows[0] : null;
+}
+
 }

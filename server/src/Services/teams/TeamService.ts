@@ -15,9 +15,14 @@ export class TeamService {
     return this.repo.getTeamById(teamId);
   }
 
-  async deleteTeam(teamId: number) {
-    return this.repo.deleteTeam(teamId);
+ async deleteTeam(teamId: number, userId: number) {
+  const isCaptain = await this.repo.isCaptain(teamId, userId);
+  if (!isCaptain) {
+    throw new Error("Only captain can delete team");
   }
+
+  return this.repo.deleteTeam(teamId);
+}
 
   async inviteUser(teamId: number, invitedUserId: number, invitedByUserId: number) {
     const isCaptain = await this.repo.isCaptain(teamId, invitedByUserId);
@@ -38,19 +43,43 @@ export class TeamService {
     return this.repo.createInvitation(teamId, invitedUserId, invitedByUserId);
   }
 
-  async respondToInvite(invitationId: number, userId: number, status: "accepted" | "rejected") {
-    // ovdje možeš kasnije provjeriti da li je user pozvan
+ async respondToInvite(
+  invitationId: number,
+  userId: number,
+  status: "accepted" | "rejected"
+) {
+  const invitation = await this.repo.getInvitationById(invitationId);
 
-    await this.repo.respondToInvitation(invitationId, status);
+  if (!invitation) {
+    throw new Error("Invitation not found");
+  }
 
-    if (status === "accepted") {
-      // treba dodati usera u team — to ćemo povezati kasnije
+  if (invitation.invited_user_id !== userId) {
+    throw new Error("You can only respond to your own invitations");
+  }
+
+  if (invitation.status !== "pending") {
+    throw new Error("Invitation is already resolved");
+  }
+
+  await this.repo.respondToInvitation(invitationId, status);
+
+  if (status === "accepted") {
+    const isMember = await this.repo.isMember(invitation.team_id, userId);
+    if (!isMember) {
+      await this.repo.addMember(invitation.team_id, userId);
     }
   }
+}
 
-  async leaveTeam(teamId: number, userId: number) {
-    return this.repo.removeMember(teamId, userId);
+ async leaveTeam(teamId: number, userId: number) {
+  const isCaptain = await this.repo.isCaptain(teamId, userId);
+  if (isCaptain) {
+    throw new Error("Captain must transfer ownership before leaving team");
   }
+
+  return this.repo.removeMember(teamId, userId);
+}
 
   async kickMember(teamId: number, targetUserId: number, captainId: number) {
     const isCaptain = await this.repo.isCaptain(teamId, captainId);
@@ -61,12 +90,36 @@ export class TeamService {
     return this.repo.removeMember(teamId, targetUserId);
   }
 
-  async transferCaptain(teamId: number, oldCaptainId: number, newCaptainId: number) {
+   async transferCaptain(teamId: number, oldCaptainId: number, newCaptainId: number) {
     const isCaptain = await this.repo.isCaptain(teamId, oldCaptainId);
     if (!isCaptain) {
       throw new Error("Only captain can transfer ownership");
     }
 
+    const isMember = await this.repo.isMember(teamId, newCaptainId);
+    if (!isMember) {
+      throw new Error("New captain must be team member");
+    }
+
     return this.repo.transferCaptain(teamId, oldCaptainId, newCaptainId);
+  }
+
+ async updateTeam(
+  teamId: number,
+  name: string,
+  tag: string,
+  description: string | null,
+  userId: number
+) {
+  const isCaptain = await this.repo.isCaptain(teamId, userId);
+  if (!isCaptain) {
+    throw new Error("Only captain can update team");
+  }
+
+  return this.repo.updateTeam(teamId, name, tag, description);
+}
+
+  async getTeamMembers(teamId: number) {
+    return this.repo.getTeamMembers(teamId);
   }
 }

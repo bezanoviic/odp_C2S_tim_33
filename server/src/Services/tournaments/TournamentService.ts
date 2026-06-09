@@ -3,9 +3,15 @@ import { ITournamentRepository } from "../../Domain/repositories/tournaments/ITo
 import { Tournament } from "../../Domain/models/Tournament";
 import { CreateTournamentDto } from "../../Domain/DTOs/tournaments/CreateTournamentDto";
 import { TournamentDto } from "../../Domain/DTOs/tournaments/TournamentDto";
+import { IWatchlistRepository } from "../../Domain/repositories/watchlist/IWatchlistRepository";
+import { ITournamentRegistrationRepository } from "../../Domain/repositories/registrations/ITournamentRegistrationRepository";
 
 export class TournamentService implements ITournamentService {
-  public constructor(private readonly tournamentRepo: ITournamentRepository) {}
+  public constructor(
+  private readonly tournamentRepo: ITournamentRepository,
+  private readonly watchlistRepo: IWatchlistRepository,
+  private readonly registrationRepo: ITournamentRegistrationRepository,
+) {}
 
   private toDto(t: Tournament): TournamentDto {
     return new TournamentDto(
@@ -42,4 +48,38 @@ export class TournamentService implements ITournamentService {
   async delete(id: number): Promise<boolean> {
     return this.tournamentRepo.delete(id);
   }
+
+  async watch(userId: number, tournamentId: number): Promise<boolean> {
+  return this.watchlistRepo.add(userId, tournamentId);
+}
+
+async unwatch(userId: number, tournamentId: number): Promise<boolean> {
+  return this.watchlistRepo.remove(userId, tournamentId);
+}
+
+async getWatchlist(userId: number): Promise<TournamentDto[]> {
+  const tournamentIds = await this.watchlistRepo.findByUserId(userId);
+  const tournaments = await Promise.all(
+    tournamentIds.map((id) => this.tournamentRepo.findById(id))
+  );
+  return tournaments
+    .filter((t): t is Tournament => t !== null)
+    .map((t) => this.toDto(t));
+}
+
+async register(tournamentId: number, teamId: number): Promise<boolean> {
+  return this.registrationRepo.register(tournamentId, teamId);
+}
+
+async unregister(tournamentId: number, teamId: number): Promise<boolean> {
+  return this.registrationRepo.unregister(tournamentId, teamId);
+}
+
+async getRegistrations(tournamentId: number): Promise<{ team_id: number; status: string; registered_at: Date }[]> {
+  return this.registrationRepo.findByTournamentId(tournamentId);
+}
+
+async updateRegistrationStatus(tournamentId: number, teamId: number, status: string): Promise<boolean> {
+  return this.registrationRepo.updateStatus(tournamentId, teamId, status);
+}
 }

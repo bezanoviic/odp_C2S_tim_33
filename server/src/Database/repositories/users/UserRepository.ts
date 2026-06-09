@@ -20,8 +20,8 @@ export class UserRepository implements IUserRepository {
     if (!res) return new User();
     try {
       const [result] = await res.conn.execute<ResultSetHeader>(
-        `INSERT INTO users (username, email, role, passwordHash) VALUES (?, ?, ?, ?)`,
-        [user.gamer_tag, user.email, user.role, user.password_hash]
+       `INSERT INTO users (gamer_tag, full_name, email, role, password_hash) VALUES (?, ?, ?, ?, ?)`,
+      [user.gamer_tag, user.full_name, user.email, user.role, user.password_hash]
       );
       if (result.insertId === 0) return new User();
       return new User(result.insertId, user.gamer_tag, user.full_name, user.email, user.role, user.password_hash);
