@@ -1,140 +1,113 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { gamesApi } from "../api_services/games/GamesAPIService";
 import type { GameDto } from "../models/game/GameTypes";
 
-const ACCENT = "#ff2878";
-const GRID_LINES = [1,2,3,4,5,6,7];
-
-const corners: React.CSSProperties[] = [
-  { top:"36px", left:"36px",  borderWidth:"1px 0 0 1px" },
-  { top:"36px", right:"36px", borderWidth:"1px 1px 0 0" },
-  { bottom:"32px", left:"36px",  borderWidth:"0 0 1px 1px" },
-  { bottom:"32px", right:"36px", borderWidth:"0 1px 1px 0" },
-];
-
 export default function GamesPage() {
-  const [games, setGames]     = useState<GameDto[]>([]);
+  const [games, setGames] = useState<GameDto[]>([]);
+  const [genre, setGenre] = useState("");
+  const [teamSize, setTeamSize] = useState("");
   const [loading, setLoading] = useState(true);
-  const [search, setSearch]   = useState("");
-  const [expandedGameId, setExpandedGameId] = useState<number | null>(null);
 
   useEffect(() => {
-    gamesApi.getAll().then((res) => {
-      if (res.success && res.data) setGames(res.data);
-      setLoading(false);
-    });
+    gamesApi.getAll()
+      .then((res) => {
+        if (res.success && res.data) setGames(res.data);
+      })
+      .catch(() => setGames([]))
+      .finally(() => setLoading(false));
   }, []);
 
-  const filtered = games.filter(g =>
-    !search.trim() ||
-    g.name.toLowerCase().includes(search.toLowerCase()) ||
-    g.genre.toLowerCase().includes(search.toLowerCase())
-  );
+  const genres = useMemo(() => Array.from(new Set(games.map((g) => g.genre).filter(Boolean))), [games]);
+  const teamSizes = useMemo(() => Array.from(new Set(games.map((g) => g.max_players_per_team))).sort((a, b) => a - b), [games]);
+
+  const filteredGames = games.filter((game) => {
+    const matchesGenre = !genre || game.genre === genre;
+    const matchesTeamSize = !teamSize || String(game.max_players_per_team) === teamSize;
+    return matchesGenre && matchesTeamSize;
+  });
 
   return (
-    <div style={{ minHeight:"100vh", background:"#06040f", fontFamily:"Inter,Arial,sans-serif", position:"relative", overflow:"hidden" }}>
-      {GRID_LINES.map(i => <div key={`h${i}`} style={{ position:"fixed", left:0, right:0, top:`${i*100/8}%`, height:"1px", background:"rgba(255,255,255,0.03)", pointerEvents:"none" }} />)}
-      {GRID_LINES.map(i => <div key={`v${i}`} style={{ position:"fixed", top:0, bottom:0, left:`${i*100/8}%`, width:"1px", background:"rgba(255,255,255,0.03)", pointerEvents:"none" }} />)}
-      {corners.map((pos, i) => <div key={i} style={{ position:"fixed", width:"14px", height:"14px", borderColor:"rgba(255,40,120,0.35)", borderStyle:"solid", ...pos, pointerEvents:"none" }} />)}
-
-      <div style={{ position:"relative", zIndex:1, maxWidth:"960px", margin:"0 auto", padding:"56px 32px 60px" }}>
-
-        <div style={{ marginBottom:"40px" }}>
-          <div style={{ fontSize:"10px", letterSpacing:"0.28em", color:"rgba(255,40,120,0.7)", marginBottom:"10px", display:"flex", alignItems:"center", gap:"10px" }}>
-            <span style={{ display:"inline-block", width:"20px", height:"1px", background:"rgba(255,40,120,0.6)" }} />
-            ARENA / GAMES
+    <div className="space-y-7 text-white">
+      <section className="rounded-[32px] border border-violet-200/12 bg-gradient-to-br from-violet-300/[0.10] via-white/[0.035] to-cyan-300/[0.10] p-6 sm:p-8">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.26em] text-violet-100/60">arena / games</p>
+            <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Games Board</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/50">Browse supported games, team sizes, and active tournaments in the same board layout as tournaments.</p>
           </div>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
-            <h1 style={{ fontSize:"30px", fontWeight:800, color:"#fff", letterSpacing:"-0.5px", margin:0 }}>
-              Game<br/><span style={{ color:ACCENT }}>Library.</span>
-            </h1>
-            <div style={{ fontFamily:"monospace", fontSize:"12px", color:"rgba(255,255,255,0.25)" }}>{games.length} titles</div>
+          <div className="rounded-[24px] border border-cyan-200/12 bg-[#061423]/70 px-5 py-4 text-right">
+            <p className="m-0 text-3xl font-black text-cyan-100">{games.reduce((sum, game) => sum + (game.active_tournaments_count ?? 0), 0)}</p>
+            <p className="m-0 text-[10px] uppercase tracking-[0.2em] text-white/35">active tournaments</p>
           </div>
         </div>
+      </section>
 
-        <div style={{ height:"1px", background:"rgba(255,40,120,0.15)", marginBottom:"28px" }} />
+      <section className="grid gap-3 rounded-[24px] border border-white/8 bg-white/[0.025] p-4 sm:grid-cols-2 lg:w-fit">
+        <select value={genre} onChange={(e) => setGenre(e.target.value)} className="pg-input min-w-[220px]">
+          <option value="">ALL GENRES</option>
+          {genres.map((g) => <option key={g} value={g}>{g.toUpperCase()}</option>)}
+        </select>
+        <select value={teamSize} onChange={(e) => setTeamSize(e.target.value)} className="pg-input min-w-[240px]">
+          <option value="">ALL TEAM SIZES</option>
+          {teamSizes.map((size) => <option key={size} value={size}>{size} PLAYERS PER TEAM</option>)}
+        </select>
+      </section>
 
-        <div style={{ marginBottom:"28px" }}>
-          <div style={{ fontSize:"10px", letterSpacing:"0.18em", color:"rgba(255,255,255,0.25)", marginBottom:"8px" }}>SEARCH</div>
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="game name or genre..."
-            style={{ width:"100%", background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:0, padding:"12px 16px", color:"#fff", fontSize:"13px", outline:"none", fontFamily:"inherit", boxSizing:"border-box" }}
-            onFocus={e => e.target.style.borderColor="rgba(255,40,120,0.4)"}
-            onBlur={e => e.target.style.borderColor="rgba(255,255,255,0.08)"} />
-        </div>
+      {loading ? (
+        <p className="text-white/45">Loading...</p>
+      ) : filteredGames.length === 0 ? (
+        <div className="rounded-[28px] border border-dashed border-violet-200/18 p-10 text-center text-white/40">No games found.</div>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          {filteredGames.map((game) => (
+            <article key={game.id} className="group rounded-[28px] border border-cyan-200/12 bg-white/[0.035] p-5 text-white transition hover:border-cyan-200/35 hover:bg-cyan-200/[0.045]">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <span className="rounded-full border border-violet-200/14 bg-violet-300/8 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-violet-100/75">{game.genre}</span>
+                <span className="rounded-full border border-cyan-200/14 bg-cyan-300/8 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-100/75">{game.max_players_per_team}v{game.max_players_per_team}</span>
+              </div>
 
-        {loading && <p style={{ color:"rgba(255,255,255,0.3)", fontSize:"13px" }}>Loading...</p>}
-        {!loading && filtered.length === 0 && (
-          <div style={{ textAlign:"center", padding:"60px 0", color:"rgba(255,255,255,0.2)", fontSize:"13px" }}>No games found.</div>
-        )}
-
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(260px, 1fr))", gap:"2px" }}>
-          {filtered.map((game, idx) => (
-            <div key={game.id}
-              onClick={() => setExpandedGameId((current) => current === game.id ? null : game.id)}
-              style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", padding:"20px 22px", position:"relative", transition:"border-color 0.2s, background 0.2s", cursor:"pointer" }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor="rgba(255,40,120,0.3)"; e.currentTarget.style.background="rgba(255,40,120,0.03)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor="rgba(255,255,255,0.06)"; e.currentTarget.style.background="rgba(255,255,255,0.02)"; }}
-            >
-              <span style={{ position:"absolute", top:0, right:0, width:"8px", height:"8px", borderTop:"1px solid rgba(255,40,120,0.4)", borderRight:"1px solid rgba(255,40,120,0.4)" }} />
-
-              <div style={{ display:"flex", alignItems:"center", gap:"14px", marginBottom:"14px" }}>
-                <span style={{ fontFamily:"monospace", fontSize:"11px", color:"rgba(255,40,120,0.4)", minWidth:"24px" }}>{String(idx+1).padStart(2,"0")}</span>
-                {game.logo
-                  ? <img src={game.logo} alt="" style={{ width:"36px", height:"36px", objectFit:"contain", opacity:0.85 }} onError={e => { e.currentTarget.style.display="none"; }} />
-                  : <div style={{ width:"36px", height:"36px", background:"rgba(255,40,120,0.08)", border:"1px solid rgba(255,40,120,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      <span style={{ fontSize:"14px", color:"rgba(255,40,120,0.5)" }}>◈</span>
-                    </div>
-                }
-                <div>
-                  <div style={{ fontSize:"15px", fontWeight:700, color:"#fff" }}>{game.name}</div>
-                  <div style={{ fontSize:"11px", color:"rgba(255,255,255,0.3)", marginTop:"2px", letterSpacing:"0.05em" }}>{game.genre}</div>
+              <div className="flex items-start gap-4">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-cyan-200/14 bg-[#061423]/70">
+                  {game.logo ? <img src={game.logo} alt="" className="h-full w-full object-contain p-3" /> : <span className="text-2xl text-cyan-100/45">◇</span>}
+                </div>
+                <div className="min-w-0">
+                  <h2 className="m-0 text-2xl font-black tracking-tight group-hover:text-cyan-50">{game.name}</h2>
+                  <p className="mt-2 text-sm leading-6 text-white/45">{game.active_tournaments_count ?? 0} active tournament{(game.active_tournaments_count ?? 0) === 1 ? "" : "s"}</p>
                 </div>
               </div>
 
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", paddingTop:"12px", borderTop:"1px solid rgba(255,255,255,0.05)" }}>
-                <span style={{ fontSize:"11px", color:"rgba(255,255,255,0.3)" }}>
-                  {game.max_players_per_team}v{game.max_players_per_team}
-                </span>
-                <span style={{ fontSize:"11px", color: game.active_tournaments_count > 0 ? ACCENT : "rgba(255,255,255,0.2)" }}>
-                  {game.active_tournaments_count > 0
-                    ? `● ${game.active_tournaments_count} available tournaments`
-                    : "no available tournaments"}
-                </span>
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-white/8 bg-[#061423]/60 p-3">
+                  <p className="m-0 text-lg font-black">{game.max_players_per_team}</p>
+                  <p className="m-0 text-[10px] uppercase tracking-[0.18em] text-white/30">team size</p>
+                </div>
+                <div className="rounded-2xl border border-white/8 bg-[#061423]/60 p-3">
+                  <p className="m-0 text-lg font-black text-cyan-100">{game.tournaments.length}</p>
+                  <p className="m-0 text-[10px] uppercase tracking-[0.18em] text-white/30">listed events</p>
+                </div>
               </div>
 
-              {expandedGameId === game.id && (
-                <div style={{ marginTop:"14px", paddingTop:"12px", borderTop:"1px solid rgba(255,255,255,0.05)" }}>
-                  <div style={{ fontSize:"10px", letterSpacing:"0.14em", color:"rgba(255,255,255,0.28)", marginBottom:"8px" }}>
-                    TOURNAMENTS
+              <div className="mt-5 border-t border-white/8 pt-4">
+                <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-white/35">Tournaments</p>
+                {game.tournaments.length === 0 ? (
+                  <p className="m-0 rounded-2xl border border-white/8 bg-[#061423]/50 px-3 py-3 text-sm text-white/35">No tournaments for this game.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {game.tournaments.slice(0, 3).map((t) => (
+                      <Link key={t.id} to={`/tournaments/${t.id}`} className="flex items-center justify-between rounded-2xl border border-cyan-200/10 px-3 py-2 text-sm text-white/75 no-underline hover:border-cyan-200/28 hover:text-white">
+                        <span className="truncate pr-3">{t.name}</span>
+                        <span className="shrink-0 text-[10px] uppercase tracking-[0.16em] text-cyan-100/45">{t.status.replace(/_/g, " ")}</span>
+                      </Link>
+                    ))}
+                    {game.tournaments.length > 3 && <p className="m-0 text-xs text-white/35">+{game.tournaments.length - 3} more tournaments</p>}
                   </div>
-                  {game.tournaments.length === 0 ? (
-                    <div style={{ color:"rgba(255,255,255,0.28)", fontSize:"12px" }}>No tournaments for this game.</div>
-                  ) : (
-                    <div style={{ display:"flex", flexDirection:"column", gap:"7px" }}>
-                      {game.tournaments.map((tournament) => (
-                        <Link
-                          key={tournament.id}
-                          to={`/tournaments/${tournament.id}`}
-                          onClick={(e) => e.stopPropagation()}
-                          style={{ color:"#fff", textDecoration:"none", fontSize:"12px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:"8px" }}
-                        >
-                          <span style={{ display:"flex", alignItems:"center", gap:"8px" }}>
-                            <span style={{ width:"5px", height:"5px", borderRadius:"50%", background: tournament.status === "upcoming" ? ACCENT : "rgba(255,255,255,0.25)", flexShrink:0 }} />
-                            {tournament.name}
-                          </span>
-                          <span style={{ color:"rgba(255,255,255,0.35)", fontSize:"10px" }}>{tournament.status.replace(/_/g, " ")}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </article>
           ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }

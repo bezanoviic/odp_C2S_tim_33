@@ -2,174 +2,122 @@ import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/auth/useAuthHook";
 
-const ACCENT = "#ff2878";
-
 const userNav = [
-  { to: "/dashboard",   label: "Dashboard",   icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-  )},
-  { to: "/games",       label: "Games",       icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 4 0v2"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
-  )},
-  { to: "/teams",       label: "Teams",       icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-  )},
-  { to: "/tournaments", label: "Tournaments", icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="18" cy="5" r="3"/><circle cx="18" cy="19" r="3"/><circle cx="6" cy="12" r="3"/><path d="M6 15v1a6 6 0 0 0 6 6M6 9V8a6 6 0 0 1 6-6h6"/></svg>
-  )},
-  { to: "/watchlist",   label: "Watchlist",   icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-  )},
+  { to: "/dashboard", label: "Overview" },
+  { to: "/games", label: "Games" },
+  { to: "/teams", label: "Teams" },
+  { to: "/tournaments", label: "Tournaments" },
+  { to: "/watchlist", label: "Watchlist" },
 ];
 
 const adminNav = [
-  { to: "/admin",              label: "Dashboard",   icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-  )},
-  { to: "/admin/users",        label: "Users",       icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-  )},
-  { to: "/admin/games",        label: "Games",       icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 4 0v2"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
-  )},
-  { to: "/tournaments",        label: "Tournaments", icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="18" cy="5" r="3"/><circle cx="18" cy="19" r="3"/><circle cx="6" cy="12" r="3"/><path d="M6 15v1a6 6 0 0 0 6 6M6 9V8a6 6 0 0 1 6-6h6"/></svg>
-  )},
-  { to: "/admin/registrations", label: "Registrations", icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-  )},
-  { to: "/admin/health",       label: "Health",      icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-  )},
-  { to: "/admin/audit",        label: "Audit Log",   icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-  )},
-  { to: "/watchlist",          label: "Watchlist",   icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-  )},
+  { to: "/admin", label: "Command" },
+  { to: "/admin/users", label: "Users" },
+  { to: "/admin/games", label: "Games" },
+  { to: "/tournaments", label: "Tournaments" },
+  { to: "/admin/registrations", label: "Registrations" },
+  { to: "/admin/health", label: "Health" },
+  { to: "/admin/audit", label: "Audit" },
+  { to: "/watchlist", label: "Watchlist" },
 ];
 
 const guestNav = [
-  { to: "/games",       label: "Games",       icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 4 0v2"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
-  )},
-  { to: "/tournaments", label: "Tournaments", icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="18" cy="5" r="3"/><circle cx="18" cy="19" r="3"/><circle cx="6" cy="12" r="3"/><path d="M6 15v1a6 6 0 0 0 6 6M6 9V8a6 6 0 0 1 6-6h6"/></svg>
-  )},
+  { to: "/games", label: "Games" },
+  { to: "/tournaments", label: "Tournaments" },
 ];
+
+function OrbLogo() {
+  return (
+    <div className="relative h-11 w-11 rounded-2xl border border-cyan-300/30 bg-cyan-300/10 shadow-[0_0_28px_rgba(78,231,255,0.14)]">
+      <div className="absolute inset-2 rounded-xl border border-violet-300/30" />
+      <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-200" />
+      <div className="absolute left-1/2 top-1/2 h-7 w-px -translate-x-1/2 -translate-y-1/2 rotate-45 bg-cyan-200/45" />
+      <div className="absolute left-1/2 top-1/2 h-7 w-px -translate-x-1/2 -translate-y-1/2 -rotate-45 bg-violet-200/45" />
+    </div>
+  );
+}
 
 export function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const isGuest = !user;
   const nav = isGuest ? guestNav : user?.role === "admin" ? adminNav : userNav;
-  const isAdmin = user?.role === "admin";
+  const home = isGuest ? "/tournaments" : user?.role === "admin" ? "/admin" : "/dashboard";
 
   return (
-    <div style={{ display:"flex", minHeight:"100vh", background:"#06040f", fontFamily:"Inter,Arial,sans-serif" }}>
+    <div className="pg-shell">
+      <header className="sticky top-0 z-40 border-b border-cyan-200/10 bg-[#07111f]/78 backdrop-blur-2xl">
+        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
+          <button onClick={() => navigate(home)} className="group flex items-center gap-3 text-left" aria-label="PulseGrid home">
+            <OrbLogo />
+            <div className="hidden sm:block">
+              <p className="m-0 text-sm font-black tracking-[0.28em] text-white">PULSEGRID</p>
+              <p className="m-0 text-[10px] uppercase tracking-[0.24em] text-cyan-200/50">
+                {isGuest ? "public arena" : user?.role === "admin" ? "admin control" : "player hub"}
+              </p>
+            </div>
+          </button>
 
-      {/* Sidebar */}
-      <aside style={{ width:"220px", flexShrink:0, borderRight:"1px solid rgba(255,40,120,0.1)", display:"flex", flexDirection:"column", background:"#07050f", position:"relative" }}>
+          <nav className="ml-0 flex min-w-0 flex-1 items-center gap-2 overflow-x-auto rounded-2xl border border-white/6 bg-white/[0.025] p-1 sm:ml-4">
+            {nav.map((item) => (
+              <NavLink key={item.to} to={item.to} end className="shrink-0 no-underline">
+                {({ isActive }) => (
+                  <span className={`block rounded-xl px-3 py-2 text-xs font-bold tracking-wide transition-all ${
+                    isActive
+                      ? "bg-cyan-300/14 text-white shadow-[inset_0_0_0_1px_rgba(78,231,255,0.28)]"
+                      : "text-white/45 hover:bg-white/[0.04] hover:text-white/80"
+                  }`}>
+                    {item.label}
+                  </span>
+                )}
+              </NavLink>
+            ))}
+          </nav>
 
-        {/* Corner accents */}
-        <span style={{ position:"absolute", top:0, right:0, width:"8px", height:"8px", borderTop:`1px solid rgba(255,40,120,0.4)`, borderRight:`1px solid rgba(255,40,120,0.4)`, pointerEvents:"none" }} />
-        <span style={{ position:"absolute", bottom:0, left:0, width:"8px", height:"8px", borderBottom:`1px solid rgba(255,40,120,0.4)`, borderLeft:`1px solid rgba(255,40,120,0.4)`, pointerEvents:"none" }} />
-
-        {/* Logo */}
-        <div style={{ padding:"20px 20px 18px", borderBottom:"1px solid rgba(255,255,255,0.05)", display:"flex", alignItems:"center", gap:"12px" }}>
-          <svg width="36" height="36" viewBox="0 0 80 80">
-            <polygon points="40,4 76,22 76,58 40,76 4,58 4,22" fill="none" stroke="rgba(255,40,120,0.55)" strokeWidth="1.2"/>
-            <polygon points="40,12 68,27 68,53 40,68 12,53 12,27" fill="none" stroke="rgba(255,40,120,0.2)" strokeWidth="0.6"/>
-            <text x="40" y="37" textAnchor="middle" fontFamily="Inter,Arial,sans-serif" fontSize="11" fontWeight="800" fill="rgba(255,255,255,0.95)" letterSpacing="1">LM</text>
-            <text x="40" y="52" textAnchor="middle" fontFamily="Inter,Arial,sans-serif" fontSize="11" fontWeight="800" fill="rgba(255,40,120,0.95)" letterSpacing="1">VG</text>
-          </svg>
-          <div>
-            <p style={{ fontSize:"14px", fontWeight:800, color:"#fff", letterSpacing:"-0.3px", margin:0 }}>Pulse</p>
-            <p style={{ fontSize:"9px", color: isAdmin ? ACCENT : isGuest ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.25)", letterSpacing:"0.2em", textTransform:"uppercase", margin:0 }}>
-              {isGuest ? "guest" : user?.role}
-            </p>
+          <div className="hidden items-center gap-3 lg:flex">
+            <span className="inline-flex items-center gap-2 rounded-full border border-lime-300/20 bg-lime-300/8 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-lime-200/80">
+              <span className="h-2 w-2 rounded-full bg-lime-200 shadow-[0_0_18px_rgba(185,255,102,0.7)]" />
+              online
+            </span>
+            {isGuest ? (
+              <button onClick={() => navigate("/login")} className="pg-button px-4 py-2 text-xs font-black uppercase tracking-[0.18em]">
+                Sign in
+              </button>
+            ) : (
+              <div className="flex items-center gap-2 rounded-2xl border border-white/8 bg-white/[0.035] px-2 py-2">
+                <NavLink to={`/users/${user?.id}`} className="flex items-center gap-2 no-underline">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-cyan-300/25 bg-cyan-300/10 text-sm font-black text-cyan-100">
+                    {user?.gamer_tag?.[0]?.toUpperCase()}
+                  </span>
+                  <span className="max-w-28 truncate text-xs font-semibold text-white/75">{user?.gamer_tag}</span>
+                </NavLink>
+                <button
+                  onClick={() => { logout(); navigate("/login"); }}
+                  className="rounded-xl border border-white/8 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white/42 transition hover:border-red-300/25 hover:text-red-200"
+                >
+                  Exit
+                </button>
+              </div>
+            )}
           </div>
         </div>
+      </header>
 
-        {/* Nav */}
-        <nav style={{ flex:1, padding:"12px 10px", display:"flex", flexDirection:"column", gap:"2px" }}>
-          {nav.map((item) => (
-            <NavLink key={item.to} to={item.to} end style={{ textDecoration:"none" }}>
-              {({ isActive }) => (
-                <div style={{
-                  display:"flex", alignItems:"center", gap:"10px",
-                  padding:"9px 12px",
-                  background: isActive ? "rgba(255,40,120,0.08)" : "transparent",
-                  border: isActive ? "1px solid rgba(255,40,120,0.25)" : "1px solid transparent",
-                  color: isActive ? "#fff" : "rgba(255,255,255,0.35)",
-                  fontSize:"13px", cursor:"pointer", transition:"all 0.15s",
-                  position:"relative",
-                }}>
-                  {isActive && <span style={{ position:"absolute", left:0, top:"20%", bottom:"20%", width:"2px", background:ACCENT }} />}
-                  <span style={{ color: isActive ? ACCENT : "rgba(255,255,255,0.3)", flexShrink:0 }}>{item.icon}</span>
-                  {item.label}
-                </div>
-              )}
-            </NavLink>
-          ))}
-        </nav>
+      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+        <main className="min-w-0">
+          <div className="pg-panel min-h-[calc(100vh-116px)] rounded-[34px] p-4 sm:p-6 lg:p-8">
+            {children}
+          </div>
+        </main>
+      </div>
 
-        {/* Divider */}
-        <div style={{ height:"1px", background:"rgba(255,40,120,0.1)", margin:"0 10px" }} />
-
-        {/* User */}
-        <div style={{ padding:"14px 14px 16px" }}>
-          {isGuest ? (
-            <button onClick={() => navigate("/login")}
-              style={{ fontSize:"11px", fontWeight:700, letterSpacing:"0.2em", color:ACCENT, background:"rgba(255,40,120,0.08)", border:"1px solid rgba(255,40,120,0.4)", cursor:"pointer", padding:"10px 14px", fontFamily:"inherit", transition:"all 0.15s", width:"100%", textAlign:"center" }}
-              onMouseEnter={e => { e.currentTarget.style.background="rgba(255,40,120,0.18)"; e.currentTarget.style.borderColor="rgba(255,40,120,0.8)"; }}
-              onMouseLeave={e => { e.currentTarget.style.background="rgba(255,40,120,0.08)"; e.currentTarget.style.borderColor="rgba(255,40,120,0.4)"; }}>
-              SIGN IN →
-            </button>
-          ) : (
-            <>
-              <NavLink to={`/users/${user?.id}`} style={{ textDecoration:"none" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:"10px", padding:"8px 10px", marginBottom:"8px", border:"1px solid transparent", transition:"border-color 0.15s" }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor="rgba(255,255,255,0.08)"}
-                  onMouseLeave={e => e.currentTarget.style.borderColor="transparent"}>
-                  <div style={{ width:"28px", height:"28px", borderRadius:"50%", background:"rgba(255,40,120,0.08)", border:"1px solid rgba(255,40,120,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <span style={{ fontSize:"12px", color:ACCENT, fontWeight:700 }}>
-                      {user?.gamer_tag?.[0]?.toUpperCase()}
-                    </span>
-                  </div>
-                  <div style={{ minWidth:0 }}>
-                    <p style={{ fontSize:"12px", fontWeight:600, color:"rgba(255,255,255,0.7)", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                      {user?.gamer_tag}
-                    </p>
-                  </div>
-                </div>
-              </NavLink>
-
-              <button onClick={() => { logout(); navigate("/login"); }}
-                style={{ fontSize:"10px", letterSpacing:"0.14em", color:"rgba(255,255,255,0.2)", background:"none", border:"none", cursor:"pointer", padding:"4px 10px", fontFamily:"inherit", transition:"color 0.15s", width:"100%", textAlign:"left" }}
-                onMouseEnter={e => e.currentTarget.style.color=ACCENT}
-                onMouseLeave={e => e.currentTarget.style.color="rgba(255,255,255,0.2)"}>
-                SIGN OUT →
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* Bottom status bar */}
-        <div style={{ borderTop:"1px solid rgba(255,255,255,0.04)", padding:"8px 14px", display:"flex", alignItems:"center", gap:"6px" }}>
-          <div style={{ width:"5px", height:"5px", borderRadius:"50%", background:ACCENT, animation:"blink 1.8s infinite" }} />
-          <span style={{ fontSize:"9px", letterSpacing:"0.14em", color:"rgba(255,255,255,0.2)" }}>NODE LIVE</span>
-        </div>
-      </aside>
-
-      {/* Main */}
-      <main style={{ flex:1, overflow:"auto", background:"#06040f" }}>
-        <div style={{ maxWidth:"1100px", margin:"0 auto" }}>
-          {children}
-        </div>
-      </main>
-
-      <style>{`@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}`}</style>
+      <div className="fixed bottom-4 right-4 z-30 lg:hidden">
+        {isGuest ? (
+          <button onClick={() => navigate("/login")} className="pg-button px-4 py-3 text-xs font-black uppercase tracking-[0.16em]">Sign in</button>
+        ) : (
+          <button onClick={() => { logout(); navigate("/login"); }} className="pg-button px-4 py-3 text-xs font-black uppercase tracking-[0.16em]">Exit</button>
+        )}
+      </div>
     </div>
   );
 }

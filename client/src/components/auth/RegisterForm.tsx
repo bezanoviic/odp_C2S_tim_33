@@ -2,227 +2,154 @@ import { useState } from "react";
 import { useAuth } from "../../hooks/auth/useAuthHook";
 import type { IAuthAPIService } from "../../api_services/auth/IAuthAPIService";
 
-type FormState = { gamer_tag: string; full_name: string; email: string; password: string };
+function AuthShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-[#07111f] px-4 py-8 text-white sm:px-6 lg:px-8">
+      <div className="absolute left-[-10rem] top-[-10rem] h-96 w-96 rounded-full bg-cyan-300/20 blur-3xl" />
+      <div className="absolute bottom-[-12rem] right-[-10rem] h-[28rem] w-[28rem] rounded-full bg-violet-300/20 blur-3xl" />
+      <div className="relative mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-8 lg:grid-cols-[0.92fr_1.08fr]">
+        <section className="pg-panel rounded-[36px] p-7 sm:p-9 lg:min-h-[640px]">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-2xl border border-cyan-200/30 bg-cyan-200/10">
+              <div className="m-3 h-6 w-6 rounded-xl border border-violet-200/35 bg-violet-200/10" />
+            </div>
+            <div>
+              <p className="m-0 text-sm font-black tracking-[0.28em]">PULSEGRID</p>
+              <p className="m-0 text-[10px] uppercase tracking-[0.24em] text-cyan-100/50">player onboarding</p>
+            </div>
+          </div>
 
-const GRID_LINES = [1,2,3,4,5,6,7];
-const DOTS: [number,number][] = [[25,25],[50,25],[75,25],[12.5,50],[37.5,50],[62.5,50],[87.5,50],[25,75],[50,75],[75,75]];
-const DOT_OPACITIES = DOTS.map(() => +(Math.random() * 0.3 + 0.2).toFixed(2));
+          <div className="mt-16">
+            <p className="mb-4 inline-flex rounded-full border border-lime-200/20 bg-lime-200/8 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-lime-100/80">
+              registration open
+            </p>
+            <h1 className="max-w-md text-5xl font-black leading-[0.95] tracking-tight sm:text-6xl">Create your arena identity</h1>
+            <p className="mt-5 max-w-md text-sm leading-7 text-white/52">Build a player profile and unlock teams, watchlists, and tournament registration.</p>
+          </div>
+
+          <div className="mt-12 grid grid-cols-3 gap-3">
+            {[["128", "players"], ["32", "teams"], ["5", "games"]].map(([value, label]) => (
+              <div key={label} className="rounded-3xl border border-cyan-200/12 bg-white/[0.035] p-4">
+                <p className="m-0 text-2xl font-black text-white">{value}</p>
+                <p className="m-0 mt-1 text-[10px] uppercase tracking-[0.2em] text-white/32">{label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-12 rounded-[28px] border border-cyan-200/12 bg-[#04101d]/50 p-5">
+            <div className="mb-3 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-cyan-100/48">
+              <span>quick rules</span><span>valid</span>
+            </div>
+            <p className="m-0 text-sm leading-7 text-white/52">Gamer tag: 3–30 characters. Password: 8+ characters with uppercase and number.</p>
+          </div>
+        </section>
+
+        <section className="pg-panel max-h-[calc(100vh-4rem)] overflow-y-auto rounded-[36px] p-6 sm:p-8 lg:p-10">
+          {children}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+type FormState = {
+  gamer_tag: string;
+  full_name: string;
+  email: string;
+  password: string;
+};
 
 export function RegisterForm({ authApi }: { authApi: IAuthAPIService }) {
   const { login } = useAuth();
-  const [form, setForm]               = useState<FormState>({ gamer_tag: "", full_name: "", email: "", password: "" });
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [form, setForm] = useState<FormState>({ gamer_tag: "", full_name: "", email: "", password: "" });
+  const [profileImage, setProfileImage] = useState<string | undefined>(undefined);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [error, setError]             = useState("");
-  const [loading, setLoading]         = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm(f => ({ ...f, [k]: e.target.value }));
+  const set = (key: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, [key]: e.target.value }));
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { setError("Image must be smaller than 2MB"); return; }
     const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      setProfileImage(base64);
-      setImagePreview(base64);
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setProfileImage(result);
+      setImagePreview(result);
     };
     reader.readAsDataURL(file);
   };
 
-  const validate = (): string | null => {
-    if (!/^[a-zA-Z0-9\-.]{3,30}$/.test(form.gamer_tag))
-      return "Gamer tag: 3-30 chars, letters/numbers/hyphen/dot";
-    if (form.full_name.trim().length < 2)
-      return "Full name must be at least 2 characters";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      return "Invalid email address";
-    if (form.password.length < 8 || !/[A-Z]/.test(form.password) || !/[0-9]/.test(form.password))
-      return "Password: 8+ chars, 1 uppercase, 1 digit";
-    return null;
-  };
-
-  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const validationError = validate();
-    if (validationError) { setError(validationError); return; }
-    setError(""); setLoading(true);
-    const res = await authApi.register(form.gamer_tag, form.full_name, form.email, form.password, profileImage ?? undefined);
+    setError("");
+    setLoading(true);
+    const res = await authApi.register(form.gamer_tag, form.full_name, form.email, form.password, profileImage);
     setLoading(false);
     if (!res.success || !res.data) { setError(res.message ?? "Registration failed"); return; }
     login(res.data);
   };
 
-  const fields: { key: keyof FormState; label: string; type: string; placeholder: string }[] = [
-    { key: "gamer_tag", label: "GAMER TAG",  type: "text",     placeholder: "your.tag (3-30 chars)" },
-    { key: "full_name", label: "FULL NAME",  type: "text",     placeholder: "John Doe" },
-    { key: "email",     label: "EMAIL",      type: "email",    placeholder: "you@email.com" },
-    { key: "password",  label: "PASSWORD",   type: "password", placeholder: "Min 8 chars, 1 uppercase, 1 digit" },
+  const fields: Array<{ key: keyof FormState; label: string; type: string; placeholder: string; autoComplete: string }> = [
+    { key: "gamer_tag", label: "Gamer tag", type: "text", placeholder: "Input Gamer Tag", autoComplete: "username" },
+    { key: "full_name", label: "Full name", type: "text", placeholder: "Input Full Name", autoComplete: "name" },
+    { key: "email", label: "Email", type: "email", placeholder: "Input Email", autoComplete: "email" },
+    { key: "password", label: "Password", type: "password", placeholder: "Password", autoComplete: "new-password" },
   ];
 
-  const inputStyle: React.CSSProperties = {
-    width: "100%", background: "transparent", border: "none",
-    borderBottom: "1px solid rgba(255,255,255,0.12)",
-    padding: "10px 0 10px 2px", color: "#fff", fontSize: "14px",
-    outline: "none", fontFamily: "inherit", transition: "border-color 0.2s",
-  };
-
   return (
-    <div style={{ display:"flex", width:"100%", height:"100vh", background:"#06040f", fontFamily:"Inter,Arial,sans-serif", overflow:"hidden" }}>
-
-      {/* LEFT PANEL */}
-      <div style={{ flex:1, position:"relative", overflow:"hidden", borderRight:"1px solid rgba(255,40,120,0.15)" }}>
-        {GRID_LINES.map(i => <div key={`h${i}`} style={{ position:"absolute", left:0, right:0, top:`${i*100/8}%`, height:"1px", background:"rgba(255,255,255,0.05)" }} />)}
-        {GRID_LINES.map(i => <div key={`v${i}`} style={{ position:"absolute", top:0, bottom:0, left:`${i*100/8}%`, width:"1px", background:"rgba(255,255,255,0.05)" }} />)}
-        {DOTS.map(([x,y], i) => <div key={i} style={{ position:"absolute", left:`${x}%`, top:`${y}%`, transform:"translate(-50%,-50%)", width:"4px", height:"4px", borderRadius:"50%", background:`rgba(255,40,120,${DOT_OPACITIES[i]})` }} />)}
-
-        <span style={{ position:"absolute", top:"20px", left:"20px", fontSize:"11px", letterSpacing:"0.14em", color:"rgba(255,255,255,0.5)", fontWeight:500 }}>SYS.REG // C2S</span>
-        <span style={{ position:"absolute", top:"20px", right:"20px", fontSize:"11px", letterSpacing:"0.14em", color:"rgba(255,255,255,0.5)", fontWeight:500 }}>BUILD 2.4.1</span>
-        <span style={{ position:"absolute", bottom:"44px", left:"20px", fontSize:"10px", letterSpacing:"0.12em", color:"rgba(255,40,120,0.65)", fontFamily:"monospace" }}>0xFF2878</span>
-        <span style={{ position:"absolute", top:"44px", right:"20px", fontSize:"10px", letterSpacing:"0.12em", color:"rgba(255,40,120,0.65)", fontFamily:"monospace" }}>0x07050F</span>
-
-        {([
-          { top:"36px",    left:"36px",  borderWidth:"1px 0 0 1px" },
-          { top:"36px",    right:"36px", borderWidth:"1px 1px 0 0" },
-          { bottom:"32px", left:"36px",  borderWidth:"0 0 1px 1px" },
-          { bottom:"32px", right:"36px", borderWidth:"0 1px 1px 0" },
-        ] as React.CSSProperties[]).map((pos, i) => (
-          <div key={i} style={{ position:"absolute", width:"14px", height:"14px", borderColor:"rgba(255,40,120,0.7)", borderStyle:"solid", ...pos }} />
-        ))}
-
-        <div style={{ position:"absolute", left:"36px", right:"36px", top:"42%", height:"1px", background:"rgba(255,40,120,0.2)" }} />
-        <span style={{ position:"absolute", bottom:"16px", right:"-8px", fontSize:"120px", fontWeight:800, color:"rgba(255,255,255,0.025)", letterSpacing:"-8px", lineHeight:1, userSelect:"none" }}>07</span>
-
-        <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", textAlign:"center", width:"220px" }}>
-          <span style={{ display:"block", fontSize:"10px", letterSpacing:"0.28em", color:"rgba(255,40,120,0.65)", marginBottom:"16px" }}>ARENA PLATFORM</span>
-          <svg width="80" height="80" viewBox="0 0 80 80" style={{ margin:"0 auto 16px", display:"block" }}>
-            <polygon points="40,4 76,22 76,58 40,76 4,58 4,22" fill="none" stroke="rgba(255,40,120,0.55)" strokeWidth="1.2"/>
-            <polygon points="40,12 68,27 68,53 40,68 12,53 12,27" fill="none" stroke="rgba(255,40,120,0.2)" strokeWidth="0.6"/>
-            <text x="40" y="37" textAnchor="middle" fontFamily="Inter,Arial,sans-serif" fontSize="14" fontWeight="800" fill="rgba(255,255,255,0.95)" letterSpacing="1.5">LM</text>
-            <text x="40" y="53" textAnchor="middle" fontFamily="Inter,Arial,sans-serif" fontSize="14" fontWeight="800" fill="rgba(255,40,120,0.95)" letterSpacing="1.5">VG</text>
-          </svg>
-          <div style={{ fontSize:"26px", fontWeight:800, color:"#fff", lineHeight:1.1, marginBottom:"10px", letterSpacing:"-0.5px" }}>
-            Join the<br/><span style={{ color:"rgba(255,40,120,0.9)" }}>Arena.</span>
-          </div>
-          <div style={{ fontSize:"11px", color:"rgba(255,255,255,0.3)", lineHeight:1.7 }}>
-            Create your profile<br/>and start competing
-          </div>
-        </div>
-
-        <div style={{ position:"absolute", bottom:0, left:0, right:0, padding:"10px 20px", borderTop:"1px solid rgba(255,255,255,0.06)", display:"flex", alignItems:"center", gap:"10px" }}>
-          <div style={{ width:"6px", height:"6px", borderRadius:"50%", background:"#ff2878", animation:"blink 1.8s infinite" }} />
-          <span style={{ fontSize:"10px", letterSpacing:"0.14em", color:"rgba(255,255,255,0.4)" }}>REGISTRATION OPEN</span>
-          <span style={{ fontSize:"10px", letterSpacing:"0.14em", color:"rgba(255,40,120,0.55)", marginLeft:"auto" }}>▮▮▮▯ SIGNAL</span>
-        </div>
+    <AuthShell>
+      <div className="mb-8">
+        <p className="mb-3 text-[10px] font-black uppercase tracking-[0.26em] text-cyan-100/55">new player</p>
+        <h2 className="text-3xl font-black tracking-tight">Create account</h2>
+        <p className="mt-2 text-sm text-white/45">Start with a gamer tag, profile info, and optional avatar.</p>
       </div>
 
-      {/* RIGHT PANEL */}
-      <div style={{ width:"45%", padding:"32px 48px", display:"flex", flexDirection:"column", justifyContent:"center", background:"#07050f", borderLeft:"1px solid rgba(255,40,120,0.08)", overflowY:"auto" }}>
+      {error && <div className="mb-5 rounded-2xl border border-red-300/20 bg-red-400/10 px-4 py-3 text-sm text-red-100">{error}</div>}
 
-        <div style={{ fontSize:"10px", letterSpacing:"0.22em", color:"rgba(255,40,120,0.7)", marginBottom:"18px", display:"flex", alignItems:"center", gap:"12px" }}>
-          <span style={{ display:"inline-block", width:"20px", height:"1px", background:"rgba(255,40,120,0.6)" }} />
-          NEW PLAYER
-        </div>
-
-        <div style={{ fontSize:"26px", fontWeight:800, color:"#fff", lineHeight:1.1, letterSpacing:"-0.5px", marginBottom:"6px" }}>Create<br/>account.</div>
-        <div style={{ fontSize:"12px", color:"rgba(255,255,255,0.28)", marginBottom:"22px", lineHeight:1.6 }}>Register to start competing on the platform.</div>
-
-        {error && (
-          <div style={{ marginBottom:"14px", padding:"10px 14px", border:"1px solid rgba(255,80,80,0.25)", background:"rgba(255,80,80,0.06)", color:"rgba(255,130,130,0.9)", fontSize:"12px", letterSpacing:"0.05em" }}>
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={submit} style={{ display:"flex", flexDirection:"column" }}>
-          {/* Profile image upload */}
-          <div style={{ marginBottom:"18px" }}>
-            <div style={{ fontSize:"10px", letterSpacing:"0.18em", color:"rgba(255,255,255,0.35)", marginBottom:"8px" }}>PROFILE IMAGE (optional)</div>
-            <div style={{ display:"flex", alignItems:"center", gap:"16px" }}>
-              <div style={{ width:"56px", height:"56px", border:"1px solid rgba(255,40,120,0.35)", background:"rgba(255,40,120,0.08)", overflow:"hidden", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                {imagePreview
-                  ? <img src={imagePreview} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                  : <span style={{ fontSize:"20px", color:"rgba(255,40,120,0.4)" }}>◈</span>
-                }
-              </div>
-              <label style={{ cursor:"pointer", fontSize:"11px", letterSpacing:"0.12em", color:"rgba(255,40,120,0.8)", border:"1px solid rgba(255,40,120,0.3)", padding:"7px 14px", background:"rgba(255,40,120,0.06)" }}>
-                CHOOSE IMAGE
-                <input type="file" accept="image/*" onChange={handleImageChange} style={{ display:"none" }} />
+      <form onSubmit={submit} className="space-y-5">
+        <div className="rounded-2xl border border-cyan-200/14 bg-[#061423]/70 p-4">
+          <span className="mb-3 block text-[10px] font-black uppercase tracking-[0.22em] text-white/38">Profile image optional</span>
+          <div className="flex items-center gap-4">
+            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl border border-cyan-200/18 bg-cyan-300/8">
+              {imagePreview ? <img src={imagePreview} alt="" className="h-full w-full object-cover" /> : <span className="text-2xl text-cyan-100/35">◇</span>}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <label className="cursor-pointer rounded-2xl border border-cyan-200/18 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-cyan-100/80 transition hover:border-cyan-200/40 hover:text-white">
+                Choose image
+                <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
               </label>
               {imagePreview && (
-                <button type="button" onClick={() => { setProfileImage(null); setImagePreview(null); }}
-                  style={{ fontSize:"11px", color:"rgba(255,100,100,0.7)", background:"none", border:"none", cursor:"pointer", letterSpacing:"0.1em" }}>
-                  REMOVE
+                <button type="button" onClick={() => { setProfileImage(undefined); setImagePreview(null); }} className="rounded-2xl border border-red-300/14 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-red-100/70 transition hover:border-red-300/30 hover:text-red-100">
+                  Remove
                 </button>
               )}
             </div>
           </div>
-
-          {fields.map(({ key, label, type, placeholder }) => (
-            <div key={key} style={{ marginBottom:"18px" }}>
-              <div style={{ fontSize:"10px", letterSpacing:"0.18em", color:"rgba(255,255,255,0.35)", marginBottom:"8px" }}>{label}</div>
-              <input
-                type={type} value={form[key]} onChange={set(key)} required
-                placeholder={placeholder}
-                style={inputStyle}
-                onFocus={e => e.target.style.borderBottomColor = "rgba(255,40,120,0.8)"}
-                onBlur={e => e.target.style.borderBottomColor = "rgba(255,255,255,0.12)"}
-              />
-            </div>
-          ))}
-
-          <div style={{ position:"relative", marginTop:"10px" }}>
-            {([
-              { top:0,    left:0,  borderWidth:"1px 0 0 1px" },
-              { top:0,    right:0, borderWidth:"1px 1px 0 0" },
-              { bottom:0, left:0,  borderWidth:"0 0 1px 1px" },
-              { bottom:0, right:0, borderWidth:"0 1px 1px 0" },
-            ] as React.CSSProperties[]).map((pos, i) => (
-              <span key={i} style={{ position:"absolute", width:"8px", height:"8px", borderColor:"rgba(255,40,120,0.65)", borderStyle:"solid", ...pos }} />
-            ))}
-            <button
-              type="submit" disabled={loading}
-              style={{ width:"100%", padding:"16px", background:"rgba(255,40,120,0.08)", border:"1px solid rgba(255,40,120,0.4)", color:"#ff2878", fontSize:"12px", fontWeight:700, letterSpacing:"0.24em", cursor:loading?"not-allowed":"pointer", fontFamily:"inherit", opacity:loading?0.4:1, transition:"background 0.2s, border-color 0.2s" }}
-              onMouseEnter={e => { if(!loading){ const b=e.currentTarget; b.style.background="rgba(255,40,120,0.18)"; b.style.borderColor="rgba(255,40,120,0.8)"; }}}
-              onMouseLeave={e => { const b=e.currentTarget; b.style.background="rgba(255,40,120,0.08)"; b.style.borderColor="rgba(255,40,120,0.4)"; }}
-            >
-              {loading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
-            </button>
-          </div>
-        </form>
-
-        <p style={{ marginTop:"16px", fontSize:"12px", color:"rgba(255,255,255,0.22)", textAlign:"center" }}>
-          Already have an account?{" "}
-          <a href="/login" style={{ color:"rgba(255,40,120,0.75)", textDecoration:"none" }}>Sign in</a>
-        </p>
-
-        <div style={{ display:"flex", alignItems:"center", gap:"10px", margin:"22px 0 14px" }}>
-          <span style={{ flex:1, height:"1px", background:"rgba(255,255,255,0.08)" }} />
-          <span style={{ fontSize:"10px", letterSpacing:"0.22em", color:"rgba(255,255,255,0.25)" }}>OR</span>
-          <span style={{ flex:1, height:"1px", background:"rgba(255,255,255,0.08)" }} />
         </div>
 
-        <a href="/tournaments"
-          style={{ display:"block", width:"100%", padding:"14px", background:"transparent", border:"1px solid rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.65)", fontSize:"11px", fontWeight:700, letterSpacing:"0.24em", textAlign:"center", textDecoration:"none", transition:"all 0.2s", boxSizing:"border-box" }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,40,120,0.5)"; e.currentTarget.style.color = "#fff"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}
-        >
-          ENTER AS GUEST →
-        </a>
+        {fields.map(({ key, label, type, placeholder, autoComplete }) => (
+          <label key={key} className="block">
+            <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.22em] text-white/38">{label}</span>
+            <input className="pg-input" type={type} value={form[key]} onChange={set(key)} required placeholder={placeholder} autoComplete={autoComplete} />
+          </label>
+        ))}
 
+        <button type="submit" disabled={loading} className="pg-button w-full px-5 py-4 text-xs font-black uppercase tracking-[0.22em]">
+          {loading ? "Creating..." : "Create account"}
+        </button>
+      </form>
+
+      <div className="my-7 flex items-center gap-3">
+        <span className="h-px flex-1 bg-white/10" /><span className="text-[10px] font-black uppercase tracking-[0.22em] text-white/28">or</span><span className="h-px flex-1 bg-white/10" />
       </div>
-
-      <style>{`
-        @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
-        input:-webkit-autofill,
-        input:-webkit-autofill:hover,
-        input:-webkit-autofill:focus {
-          -webkit-box-shadow: 0 0 0px 1000px #07050f inset !important;
-          -webkit-text-fill-color: #fff !important;
-          transition: background-color 5000s ease-in-out 0s;
-        }
-      `}</style>
-    </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <a className="rounded-2xl border border-cyan-200/14 px-4 py-3 text-center text-xs font-black uppercase tracking-[0.16em] text-cyan-100/75 no-underline transition hover:border-cyan-200/35 hover:text-white" href="/login">Sign in</a>
+        <a className="rounded-2xl border border-white/10 px-4 py-3 text-center text-xs font-black uppercase tracking-[0.16em] text-white/50 no-underline transition hover:border-white/20 hover:text-white" href="/tournaments">Browse as guest</a>
+      </div>
+    </AuthShell>
   );
 }

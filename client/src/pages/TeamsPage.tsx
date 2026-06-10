@@ -15,7 +15,6 @@ type Invitation = {
 
 export default function TeamsPage() {
   const navigate = useNavigate();
-
   const [teams, setTeams] = useState<TeamDto[]>([]);
   const [name, setName] = useState("");
   const [tag, setTag] = useState("");
@@ -27,7 +26,6 @@ export default function TeamsPage() {
     async function loadTeams() {
       const result = await TeamsAPIService.getMyTeams();
       if (result.success && result.data) setTeams(result.data);
-
       const invResult = await TeamsAPIService.getMyInvitations();
       if (invResult.success && invResult.data) setInvitations(invResult.data);
     }
@@ -35,29 +33,15 @@ export default function TeamsPage() {
   }, []);
 
   async function handleCreateTeam() {
-    if (name.trim().length < 2) {
-      alert("Team name must contain at least 2 characters");
-      return;
-    }
-    if (!/^[A-Z0-9]{2,6}$/.test(tag.trim())) {
-      alert("Tag must contain 2-6 uppercase letters or numbers");
-      return;
-    }
+    if (name.trim().length < 2) return alert("Team name must contain at least 2 characters");
+    if (!/^[A-Z0-9]{2,6}$/.test(tag.trim())) return alert("Tag must contain 2-6 uppercase letters or numbers");
     setCreating(true);
-    const result = await TeamsAPIService.createTeam({
-      name: name.trim(),
-      tag: tag.trim(),
-      description: description.trim() || null
-    });
+    const result = await TeamsAPIService.createTeam({ name: name.trim(), tag: tag.trim(), description: description.trim() || null });
     if (result.success) {
       const teamsResult = await TeamsAPIService.getMyTeams();
       if (teamsResult.success && teamsResult.data) setTeams(teamsResult.data);
-      setName("");
-      setTag("");
-      setDescription("");
-    } else {
-      alert(result.message);
-    }
+      setName(""); setTag(""); setDescription("");
+    } else alert(result.message);
     setCreating(false);
   }
 
@@ -69,349 +53,70 @@ export default function TeamsPage() {
         const teamsResult = await TeamsAPIService.getMyTeams();
         if (teamsResult.success && teamsResult.data) setTeams(teamsResult.data);
       }
-    } else {
-      alert(result.message);
-    }
+    } else alert(result.message);
   }
 
   return (
-    <main style={styles.page}>
-      <div style={styles.shell}>
-
-        <section style={styles.hero}>
+    <div className="space-y-7 text-white">
+      <section className="rounded-[32px] border border-cyan-200/12 bg-gradient-to-br from-cyan-300/[0.10] via-white/[0.035] to-violet-300/[0.10] p-6 sm:p-8">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p style={styles.eyebrow}>Pulse Teams</p>
-            <h1 style={styles.title}>Build your squad</h1>
-            <p style={styles.subtitle}>
-              Create teams, organize players and manage your roster from one place.
-            </p>
+            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.26em] text-cyan-100/55">player / teams</p>
+            <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Squad Control</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/50">Create a roster, review invites and open team details from a cleaner team workspace.</p>
           </div>
-          <div style={styles.statCard}>
-            <span style={styles.statNumber}>{teams.length}</span>
-            <span style={styles.statLabel}>active teams</span>
+          <div className="grid grid-cols-2 gap-3 sm:min-w-[320px]">
+            <div className="rounded-3xl border border-cyan-200/14 bg-[#061423]/70 px-5 py-4 text-right"><p className="m-0 text-3xl font-black">{teams.length}</p><p className="m-0 text-[10px] uppercase tracking-[0.2em] text-white/35">teams</p></div>
+            <div className="rounded-3xl border border-violet-200/14 bg-[#061423]/70 px-5 py-4 text-right"><p className="m-0 text-3xl font-black text-cyan-100">{invitations.length}</p><p className="m-0 text-[10px] uppercase tracking-[0.2em] text-white/35">invites</p></div>
+          </div>
+        </div>
+      </section>
+
+      {invitations.length > 0 && (
+        <section className="rounded-[28px] border border-cyan-200/14 bg-white/[0.035] p-5">
+          <div className="mb-4 flex items-center justify-between gap-3"><h2 className="m-0 text-2xl font-black">Pending Invitations</h2><StatusBadge status="pending" /></div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {invitations.map(inv => (
+              <article key={inv.id} className="rounded-[24px] border border-cyan-200/12 bg-[#061423]/60 p-4">
+                <div className="mb-3 flex items-center justify-between"><span className="rounded-full border border-cyan-200/14 bg-cyan-300/8 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-100/75">{inv.team_tag}</span><span className="text-xs text-white/35">{inv.created_at.slice(0, 10)}</span></div>
+                <h3 className="m-0 text-xl font-black">{inv.team_name}</h3>
+                <p className="mt-2 text-sm text-white/45">Invited by <span className="text-cyan-100">@{inv.invited_by}</span></p>
+                <div className="mt-4 flex gap-3"><button onClick={() => void handleRespondInvite(inv.team_id, inv.id, "accepted")} className="pg-button flex-1 px-4 py-3 text-xs font-black uppercase tracking-[0.16em]">Accept</button><button onClick={() => void handleRespondInvite(inv.team_id, inv.id, "rejected")} className="rounded-[18px] border border-white/10 bg-white/[0.035] px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/65 hover:border-cyan-200/25 hover:text-white">Reject</button></div>
+              </article>
+            ))}
           </div>
         </section>
+      )}
 
-        {invitations.length > 0 && (
-          <section style={{ ...styles.card, borderColor: "rgba(255,40,120,0.25)", marginBottom: "28px" }}>
-            <h2 style={{ ...styles.cardTitle, color: "#ff2878" }}>
-              Pending Invitations ({invitations.length})
-            </h2>
-            <div style={styles.grid}>
-              {invitations.map(inv => (
-                <article key={inv.id} style={{ ...styles.teamCard, border: "1px solid rgba(255,40,120,0.2)" }}>
-                  <div style={styles.teamHeader}>
-                    <span style={{ ...styles.badge, background: "linear-gradient(135deg, rgba(255,40,120,0.4), rgba(255,40,120,0.2))", color: "#ffb3cc" }}>
-                      {inv.team_tag}
-                    </span>
-                    <StatusBadge status="pending" />
-                  </div>
-                  <h3 style={styles.teamName}>{inv.team_name}</h3>
-                  <p style={styles.teamDescription}>
-                    Invited by: <span style={{ color: "#a5b4fc" }}>@{inv.invited_by}</span>
-                  </p>
-                  <p style={{ color: "#94a3b8", fontSize: "12px", margin: "8px 0 0" }}>
-                    {inv.created_at.slice(0, 10)}
-                  </p>
-                  <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
-                    <button
-                      onClick={() => void handleRespondInvite(inv.team_id, inv.id, "accepted")}
-                      style={{ ...styles.openButton, background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
-                    >
-                      Accept
-                    </button>
-                    <button
-                      onClick={() => void handleRespondInvite(inv.team_id, inv.id, "rejected")}
-                      style={{ ...styles.openButton, background: "linear-gradient(135deg, #ef4444, #be123c)" }}
-                    >
-                      Reject
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section style={styles.card}>
-          <h2 style={styles.cardTitle}>Create Team</h2>
-          <div style={styles.formGrid}>
-            <label style={styles.label}>
-              Team name
-              <input
-                type="text"
-                placeholder="Alpha Squad"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                style={styles.input}
-              />
-            </label>
-            <label style={styles.label}>
-              Tag
-              <input
-                type="text"
-                placeholder="ALPHA"
-                value={tag}
-                onChange={(e) => setTag(e.target.value.toUpperCase())}
-                style={styles.input}
-                maxLength={6}
-              />
-            </label>
+      <section className="grid gap-5 xl:grid-cols-[420px_1fr]">
+        <form className="rounded-[28px] border border-cyan-200/12 bg-white/[0.035] p-5" onSubmit={(e) => { e.preventDefault(); void handleCreateTeam(); }}>
+          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-100/55">create team</p>
+          <h2 className="m-0 text-2xl font-black">New squad</h2>
+          <div className="mt-5 space-y-4">
+            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/35">Team name<input className="pg-input mt-2" type="text" placeholder="Alpha Squad" value={name} onChange={(e) => setName(e.target.value)} /></label>
+            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/35">Tag<input className="pg-input mt-2" type="text" placeholder="ALPHA" value={tag} onChange={(e) => setTag(e.target.value.toUpperCase())} maxLength={6} /></label>
+            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/35">Description<textarea className="pg-input mt-2 min-h-28 resize-y" placeholder="Describe your team..." value={description} onChange={(e) => setDescription(e.target.value)} /></label>
           </div>
-          <label style={styles.label}>
-            Description
-            <textarea
-              placeholder="Describe your team..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              style={styles.textarea}
-            />
-          </label>
-          <button
-            onClick={() => void handleCreateTeam()}
-            disabled={creating}
-            style={{ ...styles.button, opacity: creating ? 0.7 : 1, cursor: creating ? "not-allowed" : "pointer" }}
-          >
-            {creating ? "Creating..." : "Create Team"}
-          </button>
-        </section>
+          <button className="pg-button mt-5 w-full px-5 py-4 text-xs font-black uppercase tracking-[0.18em]" disabled={creating}>{creating ? "Creating..." : "Create Team"}</button>
+        </form>
 
-        <section style={styles.teamsSection}>
-          <h2 style={styles.sectionTitle}>Team List</h2>
-          {teams.length === 0 ? (
-            <div style={styles.emptyState}>
-              <h3 style={styles.emptyTitle}>No teams yet</h3>
-              <p style={styles.emptyText}>Create your first team using the form above.</p>
-            </div>
-          ) : (
-            <div style={styles.grid}>
+        <section className="rounded-[28px] border border-cyan-200/12 bg-white/[0.025] p-5">
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-2 text-[10px] font-black uppercase tracking-[0.22em] text-white/35">your roster hub</p><h2 className="m-0 text-2xl font-black">Team List</h2></div><p className="m-0 text-sm text-white/40">{teams.length} active</p></div>
+          {teams.length === 0 ? <div className="rounded-[24px] border border-dashed border-cyan-200/18 p-10 text-center"><h3 className="m-0 text-2xl font-black">No teams yet</h3><p className="mt-2 text-white/40">Create your first team using the form.</p></div> : (
+            <div className="grid gap-4 md:grid-cols-2">
               {teams.map((team) => (
-                <article key={team.id} style={styles.teamCard}>
-                  <div style={styles.teamHeader}>
-                    <span style={styles.badge}>{team.tag}</span>
-                    <span style={styles.teamId}>#{team.id}</span>
-                  </div>
-                  <h3 style={styles.teamName}>{team.name}</h3>
-                  <p style={styles.teamDescription}>
-                    {team.description || "No description provided."}
-                  </p>
-                  <div style={styles.teamFooter}>
-                    <span>Captain ID: {team.captain_id}</span>
-                    <span>{team.created_at.slice(0, 10)}</span>
-                  </div>
-                  <button
-                    onClick={() => navigate(`/teams/${team.id}`)}
-                    style={styles.openButton}
-                  >
-                    Open Team
-                  </button>
+                <article key={team.id} className="rounded-[24px] border border-cyan-200/12 bg-[#061423]/60 p-5 transition hover:border-cyan-200/32 hover:bg-cyan-300/[0.045]">
+                  <div className="mb-4 flex items-center justify-between"><span className="rounded-full border border-cyan-200/14 bg-cyan-300/8 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-100/75">{team.tag}</span><span className="text-xs font-bold text-white/35">#{team.id}</span></div>
+                  <h3 className="m-0 text-2xl font-black tracking-tight">{team.name}</h3>
+                  <p className="min-h-12 text-sm leading-6 text-white/45">{team.description || "No description provided."}</p>
+                  <div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded-2xl border border-white/8 bg-white/[0.025] p-3"><p className="m-0 text-sm font-black">{team.captain_id}</p><p className="m-0 text-[10px] uppercase tracking-[0.18em] text-white/30">captain</p></div><div className="rounded-2xl border border-white/8 bg-white/[0.025] p-3"><p className="m-0 text-sm font-black">{team.created_at.slice(0, 10)}</p><p className="m-0 text-[10px] uppercase tracking-[0.18em] text-white/30">created</p></div></div>
+                  <button onClick={() => navigate(`/teams/${team.id}`)} className="pg-button mt-5 w-full px-4 py-3 text-xs font-black uppercase tracking-[0.16em]">Open Team</button>
                 </article>
               ))}
             </div>
           )}
         </section>
-
-      </div>
-    </main>
+      </section>
+    </div>
   );
 }
-const styles = {
-  page: {
-    minHeight: "100vh",
-    width: "100%",
-    display: "flex",
-    justifyContent: "center",
-    padding: "40px 22px",
-    color: "#f8fafc",
-    fontFamily: "Inter, Arial, sans-serif",
-    background: "transparent"
-  },
-  shell: {
-    width: "100%",
-    maxWidth: "1120px",
-    margin: "0 auto"
-  },
-  hero: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "28px",
-    marginBottom: "30px"
-  },
-  eyebrow: {
-    color: "#ff2878",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.18em",
-    fontWeight: 900,
-    marginBottom: "12px"
-  },
-  title: {
-    fontSize: "66px",
-    fontWeight: 950,
-    lineHeight: 0.95,
-    margin: 0,
-    background: "linear-gradient(135deg, #ffffff, #ff2878, #ff6ba8)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent"
-  },
-  subtitle: {
-    maxWidth: "620px",
-    color: "#cbd5e1",
-    fontSize: "18px",
-    marginTop: "18px",
-    lineHeight: 1.6
-  },
-  statCard: {
-    minWidth: "180px",
-    padding: "28px",
-    borderRadius: "28px",
-    background: "rgba(255,40,120,0.1)",
-    border: "1px solid rgba(255,40,120,0.18)",
-    textAlign: "center" as const
-  },
-  statNumber: {
-    display: "block",
-    fontSize: "52px",
-    fontWeight: 950
-  },
-  statLabel: {
-    color: "#cbd5e1",
-    fontWeight: 700
-  },
-  card: {
-    width: "100%",
-    padding: "34px",
-    borderRadius: "30px",
-    background: "rgba(15, 23, 42, 0.78)",
-    border: "1px solid rgba(255,40,120,0.14)",
-    marginBottom: "38px"
-  },
-  cardTitle: {
-    marginTop: 0,
-    marginBottom: "22px",
-    fontSize: "28px"
-  },
-  formGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 240px",
-    gap: "18px"
-  },
-  label: {
-    display: "block",
-    color: "#e2e8f0",
-    fontWeight: 800,
-    marginBottom: "16px"
-  },
-  input: {
-    display: "block",
-    width: "100%",
-    marginTop: "9px",
-    padding: "15px 16px",
-    borderRadius: "16px",
-    border: "1px solid rgba(255,40,120,0.18)",
-    background: "rgba(255,255,255,0.09)",
-    color: "#f8fafc",
-    outline: "none",
-    boxSizing: "border-box" as const
-  },
-  textarea: {
-    display: "block",
-    width: "100%",
-    minHeight: "105px",
-    marginTop: "9px",
-    padding: "15px 16px",
-    borderRadius: "16px",
-    border: "1px solid rgba(255,40,120,0.18)",
-    background: "rgba(255,255,255,0.09)",
-    color: "#f8fafc",
-    outline: "none",
-    resize: "vertical" as const,
-    boxSizing: "border-box" as const
-  },
-  button: {
-    border: 0,
-    borderRadius: "999px",
-    padding: "15px 30px",
-    background: "linear-gradient(135deg, #ff2878, #ff6ba8)",
-    color: "white",
-    fontWeight: 900,
-    fontSize: "15px"
-  },
-  teamsSection: {
-    width: "100%"
-  },
-  sectionTitle: {
-    marginBottom: "18px",
-    fontSize: "28px"
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-    gap: "20px"
-  },
-  teamCard: {
-    padding: "26px",
-    borderRadius: "28px",
-    background: "linear-gradient(145deg, rgba(30,41,59,0.96), rgba(15,23,42,0.96))",
-    border: "1px solid rgba(255,40,120,0.1)"
-  },
-  teamHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "20px"
-  },
-  badge: {
-    padding: "7px 12px",
-    borderRadius: "999px",
-    background: "linear-gradient(135deg, rgba(255,40,120,0.45), rgba(255,107,168,0.35))",
-    color: "#ffb3cc",
-    fontWeight: 900
-  },
-  teamId: {
-    color: "#94a3b8",
-    fontWeight: 700
-  },
-  teamName: {
-    fontSize: "26px",
-    margin: "0 0 10px"
-  },
-  teamDescription: {
-    color: "#cbd5e1",
-    minHeight: "44px",
-    lineHeight: 1.5
-  },
-  teamFooter: {
-    display: "flex",
-    justifyContent: "space-between",
-    color: "#94a3b8",
-    fontSize: "13px",
-    marginTop: "22px"
-  },
-  openButton: {
-    width: "100%",
-    marginTop: "18px",
-    border: 0,
-    borderRadius: "999px",
-    padding: "12px 18px",
-    background: "linear-gradient(135deg, #ff2878, #ff6ba8)",
-    color: "white",
-    fontWeight: 900,
-    cursor: "pointer"
-  },
-  emptyState: {
-    padding: "34px",
-    borderRadius: "28px",
-    background: "rgba(255,255,255,0.08)",
-    border: "1px dashed rgba(255,40,120,0.22)",
-    color: "#cbd5e1",
-    textAlign: "center" as const
-  },
-  emptyTitle: {
-    color: "#f8fafc",
-    marginBottom: "8px"
-  },
-  emptyText: {
-    margin: 0
-  }
-};

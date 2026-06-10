@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TeamsAPIService } from "../api_services/teams/TeamsAPIService";
 import type { TeamDto, TeamMemberDto } from "../models/team/TeamTypes";
+import { StatusBadge } from "../components/ui/UI";
 
 export default function TeamDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const teamId = Number(id);
 
   const [team, setTeam] = useState<TeamDto | null>(null);
@@ -38,10 +38,7 @@ export default function TeamDetailsPage() {
         setEditDescription(teamResult.data.description ?? "");
       }
 
-      if (membersResult.success && membersResult.data) {
-        setMembers(membersResult.data);
-      }
-
+      if (membersResult.success && membersResult.data) setMembers(membersResult.data);
       setLoading(false);
     }
 
@@ -50,22 +47,12 @@ export default function TeamDetailsPage() {
 
   async function refreshMembers() {
     const result = await TeamsAPIService.getMembers(teamId);
-
-    if (result.success && result.data) {
-      setMembers(result.data);
-    }
+    if (result.success && result.data) setMembers(result.data);
   }
 
   async function handleUpdateTeam() {
-    if (editName.trim().length < 2) {
-      alert("Team name must contain at least 2 characters");
-      return;
-    }
-
-    if (!/^[A-Z0-9]{2,6}$/.test(editTag.trim())) {
-      alert("Tag must contain 2-6 uppercase letters or numbers");
-      return;
-    }
+    if (editName.trim().length < 2) return alert("Team name must contain at least 2 characters");
+    if (!/^[A-Z0-9]{2,6}$/.test(editTag.trim())) return alert("Tag must contain 2-6 uppercase letters or numbers");
 
     const result = await TeamsAPIService.updateTeam(teamId, {
       name: editName.trim(),
@@ -75,491 +62,187 @@ export default function TeamDetailsPage() {
 
     if (result.success) {
       const teamResult = await TeamsAPIService.getTeam(teamId);
-
       if (teamResult.success && teamResult.data) {
         setTeam(teamResult.data);
         setEditName(teamResult.data.name);
         setEditTag(teamResult.data.tag);
         setEditDescription(teamResult.data.description ?? "");
       }
-
       alert("Team updated");
-    } else {
-      alert(result.message);
-    }
+    } else alert(result.message);
   }
 
   async function handleInviteUser() {
     const userId = Number(invitedUserId);
-
-    if (!Number.isInteger(userId) || userId <= 0) {
-      alert("Enter valid user ID");
-      return;
-    }
+    if (!Number.isInteger(userId) || userId <= 0) return alert("Enter valid user ID");
 
     const result = await TeamsAPIService.inviteUser(teamId, userId);
-
     if (result.success) {
       alert("Invitation sent");
       setInvitedUserId("");
-    } else {
-      alert(result.message);
-    }
+    } else alert(result.message);
   }
 
   async function handleRespondToInvite(status: "accepted" | "rejected") {
     const inviteId = Number(invitationId);
-
-    if (!Number.isInteger(inviteId) || inviteId <= 0) {
-      alert("Enter valid invitation ID");
-      return;
-    }
+    if (!Number.isInteger(inviteId) || inviteId <= 0) return alert("Enter valid invitation ID");
 
     const result = await TeamsAPIService.respondToInvite(teamId, inviteId, status);
-
     if (result.success) {
       alert(`Invitation ${status}`);
       setInvitationId("");
       await refreshMembers();
-    } else {
-      alert(result.message);
-    }
+    } else alert(result.message);
   }
 
   async function handleKickMember(userId: number) {
     const result = await TeamsAPIService.kickMember(teamId, userId);
-
-    if (result.success) {
-      await refreshMembers();
-    } else {
-      alert(result.message);
-    }
+    if (result.success) await refreshMembers();
+    else alert(result.message);
   }
 
   async function handleTransferCaptain() {
     const userId = Number(newCaptainId);
-
-    if (!Number.isInteger(userId) || userId <= 0) {
-      alert("Enter valid new captain ID");
-      return;
-    }
+    if (!Number.isInteger(userId) || userId <= 0) return alert("Enter valid new captain ID");
 
     const result = await TeamsAPIService.transferCaptain(teamId, userId);
-
     if (result.success) {
       alert("Captain transferred");
       setNewCaptainId("");
       navigate("/teams");
-    } else {
-      alert(result.message);
-    }
+    } else alert(result.message);
   }
 
   async function handleLeaveTeam() {
     const result = await TeamsAPIService.leaveTeam(teamId);
-
-    if (result.success) {
-      navigate("/teams");
-    } else {
-      alert(result.message);
-    }
+    if (result.success) navigate("/teams");
+    else alert(result.message);
   }
 
   async function handleDeleteTeam() {
     const result = await TeamsAPIService.deleteTeam(teamId);
-
-    if (result.success) {
-      navigate("/teams");
-    } else {
-      alert(result.message);
-    }
+    if (result.success) navigate("/teams");
+    else alert(result.message);
   }
 
   if (loading) {
-    return (
-      <main style={styles.page}>
-        <div style={styles.loader}>Loading team...</div>
-      </main>
-    );
+    return <div className="rounded-[28px] border border-cyan-200/12 bg-white/[0.035] p-10 text-center text-xl font-black text-white/60">Loading team...</div>;
   }
 
   if (!team) {
-    return (
-      <main style={styles.page}>
-        <div style={styles.loader}>Team not found.</div>
-      </main>
-    );
+    return <div className="rounded-[28px] border border-dashed border-cyan-200/18 p-10 text-center text-white/45">Team not found.</div>;
   }
 
   return (
-    <main style={styles.page}>
-      <div style={styles.shell}>
-        <button onClick={() => navigate("/teams")} style={styles.backButton}>
-          ← Back to teams
-        </button>
+    <div className="space-y-7 text-white">
+      <button onClick={() => navigate("/teams")} className="rounded-[18px] border border-white/10 bg-white/[0.035] px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/65 hover:border-cyan-200/25 hover:text-white">
+        ← Back to teams
+      </button>
 
-        <section style={styles.hero}>
+      <section className="overflow-hidden rounded-[32px] border border-cyan-200/12 bg-gradient-to-br from-cyan-300/[0.10] via-white/[0.035] to-violet-300/[0.10] p-6 sm:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <span style={styles.badge}>{team.tag}</span>
-            <h1 style={styles.title}>{team.name}</h1>
-            <p style={styles.subtitle}>
-              {team.description || "No description provided."}
-            </p>
+            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.26em] text-cyan-100/55">team command / roster</p>
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <span className="rounded-full border border-cyan-200/14 bg-cyan-300/8 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-cyan-100/80">{team.tag}</span>
+              <StatusBadge status="active" />
+            </div>
+            <h1 className="text-4xl font-black tracking-tight sm:text-5xl">{team.name}</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/50">{team.description || "No description provided."}</p>
           </div>
-
-          <div style={styles.statCard}>
-            <span style={styles.statNumber}>{members.length}</span>
-            <span style={styles.statLabel}>members</span>
+          <div className="grid grid-cols-2 gap-3 sm:min-w-[340px]">
+            <div className="rounded-3xl border border-cyan-200/14 bg-[#061423]/70 px-5 py-4 text-right">
+              <p className="m-0 text-3xl font-black text-cyan-100">{members.length}</p>
+              <p className="m-0 text-[10px] uppercase tracking-[0.2em] text-white/35">members</p>
+            </div>
+            <div className="rounded-3xl border border-violet-200/14 bg-[#061423]/70 px-5 py-4 text-right">
+              <p className="m-0 text-3xl font-black">#{team.id}</p>
+              <p className="m-0 text-[10px] uppercase tracking-[0.2em] text-white/35">team id</p>
+            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section style={styles.actionsGrid}>
-          <div style={styles.card}>
-            <h2 style={styles.cardTitle}>Edit team</h2>
-
-            <input
-              type="text"
-              placeholder="Team name"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              style={styles.input}
-            />
-
-            <input
-              type="text"
-              placeholder="TAG"
-              value={editTag}
-              onChange={(e) => setEditTag(e.target.value.toUpperCase())}
-              style={styles.input}
-              maxLength={6}
-            />
-
-            <input
-              type="text"
-              placeholder="Description"
-              value={editDescription}
-              onChange={(e) => setEditDescription(e.target.value)}
-              style={styles.input}
-            />
-
-            <button onClick={() => void handleUpdateTeam()} style={styles.primaryButton}>
-              Save Changes
-            </button>
+      <section className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+        <section className="rounded-[28px] border border-cyan-200/12 bg-white/[0.025] p-5">
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.22em] text-white/35">active roster</p>
+              <h2 className="m-0 text-2xl font-black">Members</h2>
+            </div>
+            <p className="m-0 text-sm text-white/40">{members.length} listed</p>
           </div>
-
-          <div style={styles.card}>
-            <h2 style={styles.cardTitle}>Invite player</h2>
-
-            <input
-              type="number"
-              placeholder="Invited user ID"
-              value={invitedUserId}
-              onChange={(e) => setInvitedUserId(e.target.value)}
-              style={styles.input}
-            />
-
-            <button onClick={() => void handleInviteUser()} style={styles.primaryButton}>
-              Send Invitation
-            </button>
-          </div>
-
-          <div style={styles.card}>
-            <h2 style={styles.cardTitle}>Respond to invitation</h2>
-
-            <input
-              type="number"
-              placeholder="Invitation ID"
-              value={invitationId}
-              onChange={(e) => setInvitationId(e.target.value)}
-              style={styles.input}
-            />
-
-            <button
-              onClick={() => void handleRespondToInvite("accepted")}
-              style={styles.primaryButton}
-            >
-              Accept Invite
-            </button>
-
-            <button
-              onClick={() => void handleRespondToInvite("rejected")}
-              style={styles.rejectButton}
-            >
-              Reject Invite
-            </button>
-          </div>
-
-          <div style={styles.card}>
-            <h2 style={styles.cardTitle}>Transfer captain</h2>
-
-            <input
-              type="number"
-              placeholder="New captain user ID"
-              value={newCaptainId}
-              onChange={(e) => setNewCaptainId(e.target.value)}
-              style={styles.input}
-            />
-
-            <button onClick={() => void handleTransferCaptain()} style={styles.primaryButton}>
-              Transfer Captain
-            </button>
-          </div>
-
-          <div style={styles.card}>
-            <h2 style={styles.cardTitle}>Danger zone</h2>
-
-            <button onClick={() => void handleLeaveTeam()} style={styles.warningButton}>
-              Leave Team
-            </button>
-
-            <button onClick={() => void handleDeleteTeam()} style={styles.dangerButton}>
-              Delete Team
-            </button>
-          </div>
-        </section>
-
-        <section style={styles.membersCard}>
-          <h2 style={styles.sectionTitle}>Roster</h2>
 
           {members.length === 0 ? (
-            <p style={styles.emptyText}>No members found.</p>
+            <div className="rounded-[24px] border border-dashed border-cyan-200/18 p-10 text-center text-white/40">No members found.</div>
           ) : (
-            <div style={styles.memberGrid}>
+            <div className="grid gap-4 md:grid-cols-2">
               {members.map((member) => (
-                <article key={member.user_id} style={styles.memberCard}>
-                  <div>
-                    <h3 style={styles.memberName}>{member.full_name}</h3>
-                    <p style={styles.memberTag}>@{member.gamer_tag}</p>
+                <article key={member.user_id} className="rounded-[24px] border border-cyan-200/12 bg-[#061423]/60 p-5 transition hover:border-cyan-200/32 hover:bg-cyan-300/[0.045]">
+                  <div className="mb-4 flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="m-0 text-xl font-black tracking-tight">{member.full_name}</h3>
+                      <p className="mt-1 text-sm text-cyan-100/55">@{member.gamer_tag}</p>
+                    </div>
+                    <span className="rounded-full border border-violet-200/14 bg-violet-300/8 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-violet-100/75">{member.role}</span>
                   </div>
-
-                  <span style={styles.roleBadge}>{member.role.toUpperCase()}</span>
-
-                  <button
-                    onClick={() => void handleKickMember(member.user_id)}
-                    style={styles.kickButton}
-                  >
-                    Kick
+                  <button onClick={() => void handleKickMember(member.user_id)} className="w-full rounded-[18px] border border-red-300/20 bg-red-400/10 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-red-100/75 hover:border-red-300/35 hover:text-red-50">
+                    Kick member
                   </button>
                 </article>
               ))}
             </div>
           )}
         </section>
-      </div>
-    </main>
+
+        <section className="space-y-5">
+          <form className="rounded-[28px] border border-cyan-200/12 bg-white/[0.035] p-5" onSubmit={(e) => { e.preventDefault(); void handleUpdateTeam(); }}>
+            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-100/55">team settings</p>
+            <h2 className="m-0 text-2xl font-black">Edit team</h2>
+            <div className="mt-5 space-y-4">
+              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/35">Team name<input className="pg-input mt-2" type="text" placeholder="Team name" value={editName} onChange={(e) => setEditName(e.target.value)} /></label>
+              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/35">Tag<input className="pg-input mt-2" type="text" placeholder="TAG" value={editTag} onChange={(e) => setEditTag(e.target.value.toUpperCase())} maxLength={6} /></label>
+              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/35">Description<textarea className="pg-input mt-2 min-h-24 resize-y" placeholder="Description" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} /></label>
+            </div>
+            <button className="pg-button mt-5 w-full px-5 py-4 text-xs font-black uppercase tracking-[0.18em]">Save Changes</button>
+          </form>
+
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-1">
+            <div className="rounded-[28px] border border-cyan-200/12 bg-white/[0.035] p-5">
+              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-white/35">invite</p>
+              <h2 className="m-0 text-xl font-black">Invite player</h2>
+              <input className="pg-input mt-5" type="number" placeholder="Invited user ID" value={invitedUserId} onChange={(e) => setInvitedUserId(e.target.value)} />
+              <button onClick={() => void handleInviteUser()} className="pg-button mt-4 w-full px-4 py-3 text-xs font-black uppercase tracking-[0.16em]">Send Invitation</button>
+            </div>
+
+            <div className="rounded-[28px] border border-violet-200/12 bg-white/[0.035] p-5">
+              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-white/35">invitations</p>
+              <h2 className="m-0 text-xl font-black">Respond to invite</h2>
+              <input className="pg-input mt-5" type="number" placeholder="Invitation ID" value={invitationId} onChange={(e) => setInvitationId(e.target.value)} />
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <button onClick={() => void handleRespondToInvite("accepted")} className="pg-button px-4 py-3 text-xs font-black uppercase tracking-[0.16em]">Accept</button>
+                <button onClick={() => void handleRespondToInvite("rejected")} className="rounded-[18px] border border-white/10 bg-white/[0.035] px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/65 hover:border-cyan-200/25 hover:text-white">Reject</button>
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-cyan-200/12 bg-white/[0.035] p-5">
+              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-white/35">captain</p>
+              <h2 className="m-0 text-xl font-black">Transfer captain</h2>
+              <input className="pg-input mt-5" type="number" placeholder="New captain user ID" value={newCaptainId} onChange={(e) => setNewCaptainId(e.target.value)} />
+              <button onClick={() => void handleTransferCaptain()} className="pg-button mt-4 w-full px-4 py-3 text-xs font-black uppercase tracking-[0.16em]">Transfer Captain</button>
+            </div>
+
+            <div className="rounded-[28px] border border-red-300/18 bg-red-400/[0.045] p-5">
+              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-red-100/50">danger zone</p>
+              <h2 className="m-0 text-xl font-black">Team access</h2>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                <button onClick={() => void handleLeaveTeam()} className="rounded-[18px] border border-orange-300/20 bg-orange-400/10 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-orange-100/75 hover:border-orange-300/35 hover:text-orange-50">Leave Team</button>
+                <button onClick={() => void handleDeleteTeam()} className="rounded-[18px] border border-red-300/20 bg-red-400/10 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-red-100/75 hover:border-red-300/35 hover:text-red-50">Delete Team</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </div>
   );
 }
-const styles = {
-  page: {
-    minHeight: "100vh",
-    width: "100%",
-    padding: "54px 22px",
-    background: "radial-gradient(circle at 15% 10%, rgba(255,40,120,0.18), transparent 28%), radial-gradient(circle at 85% 20%, rgba(255,107,168,0.12), transparent 28%), radial-gradient(circle at 50% 100%, rgba(255,40,120,0.12), transparent 30%), linear-gradient(135deg, #020617 0%, #0f172a 45%, #111827 100%)",
-    color: "#f8fafc",
-    fontFamily: "Inter, Arial, sans-serif"
-  },
-  shell: {
-    maxWidth: "1120px",
-    margin: "0 auto"
-  },
-  loader: {
-    margin: "120px auto",
-    maxWidth: "420px",
-    textAlign: "center" as const,
-    padding: "28px",
-    borderRadius: "24px",
-    background: "rgba(15,23,42,0.82)",
-    border: "1px solid rgba(255,40,120,0.14)",
-    fontSize: "22px",
-    fontWeight: 900
-  },
-  backButton: {
-    border: 0,
-    borderRadius: "999px",
-    padding: "12px 18px",
-    marginBottom: "26px",
-    background: "rgba(255,40,120,0.1)",
-    color: "#ffb3cc",
-    cursor: "pointer",
-    fontWeight: 900
-  },
-  hero: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "28px",
-    marginBottom: "32px"
-  },
-  badge: {
-    display: "inline-block",
-    padding: "8px 14px",
-    borderRadius: "999px",
-    background: "linear-gradient(135deg, #ff2878, #ff6ba8)",
-    color: "white",
-    fontWeight: 900,
-    letterSpacing: "0.12em",
-    marginBottom: "16px"
-  },
-  title: {
-    fontSize: "64px",
-    lineHeight: 0.95,
-    margin: 0,
-    background: "linear-gradient(135deg, #ffffff, #ff2878, #ff6ba8)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent"
-  },
-  subtitle: {
-    maxWidth: "660px",
-    color: "#cbd5e1",
-    fontSize: "18px",
-    lineHeight: 1.6,
-    marginTop: "18px"
-  },
-  statCard: {
-    minWidth: "180px",
-    padding: "28px",
-    borderRadius: "28px",
-    background: "rgba(255,40,120,0.1)",
-    border: "1px solid rgba(255,40,120,0.18)",
-    textAlign: "center" as const,
-    boxShadow: "0 28px 80px rgba(0,0,0,0.35)",
-    backdropFilter: "blur(16px)"
-  },
-  statNumber: {
-    display: "block",
-    fontSize: "52px",
-    fontWeight: 950
-  },
-  statLabel: {
-    color: "#cbd5e1",
-    fontWeight: 800
-  },
-  actionsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: "20px",
-    marginBottom: "32px"
-  },
-  card: {
-    padding: "26px",
-    borderRadius: "28px",
-    background: "rgba(15,23,42,0.82)",
-    border: "1px solid rgba(255,40,120,0.12)",
-    boxShadow: "0 28px 80px rgba(0,0,0,0.32)",
-    backdropFilter: "blur(18px)"
-  },
-  cardTitle: {
-    marginTop: 0,
-    marginBottom: "18px",
-    fontSize: "24px"
-  },
-  input: {
-    width: "100%",
-    padding: "14px 16px",
-    marginBottom: "14px",
-    borderRadius: "16px",
-    border: "1px solid rgba(255,40,120,0.18)",
-    background: "rgba(255,255,255,0.09)",
-    color: "#f8fafc",
-    outline: "none",
-    boxSizing: "border-box" as const
-  },
-  primaryButton: {
-    width: "100%",
-    border: 0,
-    borderRadius: "999px",
-    padding: "13px 18px",
-    background: "linear-gradient(135deg, #ff2878, #ff6ba8)",
-    color: "white",
-    fontWeight: 900,
-    cursor: "pointer"
-  },
-  rejectButton: {
-    width: "100%",
-    border: 0,
-    borderRadius: "999px",
-    padding: "13px 18px",
-    marginTop: "12px",
-    background: "linear-gradient(135deg, #f97316, #ef4444)",
-    color: "white",
-    fontWeight: 900,
-    cursor: "pointer"
-  },
-  warningButton: {
-    width: "100%",
-    border: 0,
-    borderRadius: "999px",
-    padding: "13px 18px",
-    marginBottom: "12px",
-    background: "linear-gradient(135deg, #f59e0b, #ef4444)",
-    color: "white",
-    fontWeight: 900,
-    cursor: "pointer"
-  },
-  dangerButton: {
-    width: "100%",
-    border: 0,
-    borderRadius: "999px",
-    padding: "13px 18px",
-    background: "linear-gradient(135deg, #ef4444, #be123c)",
-    color: "white",
-    fontWeight: 900,
-    cursor: "pointer"
-  },
-  membersCard: {
-    padding: "30px",
-    borderRadius: "30px",
-    background: "rgba(15,23,42,0.82)",
-    border: "1px solid rgba(255,40,120,0.12)",
-    boxShadow: "0 35px 100px rgba(0,0,0,0.42)",
-    backdropFilter: "blur(20px)"
-  },
-  sectionTitle: {
-    marginTop: 0,
-    marginBottom: "20px",
-    fontSize: "28px"
-  },
-  emptyText: {
-    color: "#cbd5e1",
-    margin: 0
-  },
-  memberGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-    gap: "18px"
-  },
-  memberCard: {
-    padding: "22px",
-    borderRadius: "24px",
-    background: "linear-gradient(145deg, rgba(30,41,59,0.96), rgba(15,23,42,0.96))",
-    border: "1px solid rgba(255,40,120,0.1)"
-  },
-  memberName: {
-    margin: 0,
-    marginBottom: "6px",
-    fontSize: "21px"
-  },
-  memberTag: {
-    color: "#cbd5e1",
-    margin: "0 0 14px"
-  },
-  roleBadge: {
-    display: "inline-block",
-    padding: "7px 12px",
-    borderRadius: "999px",
-    background: "rgba(255,40,120,0.25)",
-    color: "#ffb3cc",
-    fontWeight: 900,
-    marginBottom: "16px"
-  },
-  kickButton: {
-    width: "100%",
-    border: 0,
-    borderRadius: "999px",
-    padding: "11px 16px",
-    background: "rgba(239,68,68,0.2)",
-    color: "#fecaca",
-    fontWeight: 900,
-    cursor: "pointer"
-  }
-};

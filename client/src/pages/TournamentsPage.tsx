@@ -11,143 +11,66 @@ export default function TournamentsPage() {
   const [format, setFormat] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const load = async () => {
+  useEffect(() => {
+    let mounted = true;
     setLoading(true);
-    try {
-      const filters: { status?: string; format?: string } = {};
-      if (status) filters.status = status;
-      if (format) filters.format = format;
-      const data = await TournamentsAPIService.getAll(filters);
-      setTournaments(data);
-    } catch {
-      setTournaments([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(); }, [status, format]);
-
-  const inputStyle: React.CSSProperties = {
-    background: "#07050f",
-    border: "1px solid rgba(255,255,255,0.12)",
-    padding: "10px 14px",
-    color: "#fff",
-    fontSize: "12px",
-    outline: "none",
-    fontFamily: "inherit",
-    letterSpacing: "0.1em",
-    colorScheme: "dark",
-  };
+    const filters: { status?: string; format?: string } = {};
+    if (status) filters.status = status;
+    if (format) filters.format = format;
+    TournamentsAPIService.getAll(filters)
+      .then((data) => mounted && setTournaments(data))
+      .catch(() => mounted && setTournaments([]))
+      .finally(() => mounted && setLoading(false));
+    return () => { mounted = false; };
+  }, [status, format]);
 
   return (
-    <div style={{ minHeight: "100%", padding: "32px", fontFamily: "Inter,Arial,sans-serif", color: "#fff" }}>
-      <div style={{ fontSize: "10px", letterSpacing: "0.22em", color: "rgba(255,40,120,0.7)", marginBottom: "12px", display: "flex", alignItems: "center", gap: "12px" }}>
-        <span style={{ display: "inline-block", width: "20px", height: "1px", background: "rgba(255,40,120,0.6)" }} />
-        ARENA / TOURNAMENTS
-      </div>
+    <div className="space-y-7 text-white">
+      <section className="rounded-[32px] border border-violet-200/12 bg-gradient-to-br from-violet-300/[0.10] via-white/[0.035] to-cyan-300/[0.10] p-6 sm:p-8">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.26em] text-violet-100/60">arena / tournaments</p>
+            <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Tournament Board</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/50">Filter events, view prizes, and open tournament details from one clean board.</p>
+          </div>
+          {user?.role === "admin" && (
+            <Link to="/admin/tournaments/new" className="pg-button px-5 py-3 text-xs font-black uppercase tracking-[0.2em] no-underline">+ Create Tournament</Link>
+          )}
+        </div>
+      </section>
 
-      <h1 style={{ fontSize: "36px", fontWeight: 800, letterSpacing: "-0.5px", marginBottom: "8px" }}>
-        Tournaments<span style={{ color: "rgba(255,40,120,0.9)" }}>.</span>
-      </h1>
-      <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", marginBottom: "32px" }}>
-        Compete. Watch. Climb the ranks.
-      </p>
-
-      {user?.role === "admin" && (
-        <Link
-          to="/admin/tournaments/new"
-          style={{
-            display: "inline-block",
-            padding: "12px 24px",
-            background: "rgba(255,40,120,0.08)",
-            border: "1px solid rgba(255,40,120,0.4)",
-            color: "#ff2878",
-            fontSize: "11px",
-            fontWeight: 700,
-            letterSpacing: "0.24em",
-            textDecoration: "none",
-            marginBottom: "24px",
-          }}
-        >
-          + CREATE TOURNAMENT
-        </Link>
-      )}
-
-      <div style={{ display: "flex", gap: "12px", marginBottom: "28px", marginTop: "16px" }}>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          style={inputStyle}
-          onFocus={(e) => (e.target.style.borderColor = "rgba(255,40,120,0.8)")}
-          onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.12)")}
-        >
+      <section className="grid gap-3 rounded-[24px] border border-white/8 bg-white/[0.025] p-4 sm:grid-cols-2 lg:w-fit">
+        <select value={status} onChange={(e) => setStatus(e.target.value)} className="pg-input min-w-[220px]">
           <option value="">ALL STATUSES</option>
           <option value="upcoming">UPCOMING</option>
           <option value="ongoing">ONGOING</option>
           <option value="completed">COMPLETED</option>
           <option value="cancelled">CANCELLED</option>
         </select>
-
-        <select
-          value={format}
-          onChange={(e) => setFormat(e.target.value)}
-          style={inputStyle}
-          onFocus={(e) => (e.target.style.borderColor = "rgba(255,40,120,0.8)")}
-          onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.12)")}
-        >
+        <select value={format} onChange={(e) => setFormat(e.target.value)} className="pg-input min-w-[240px]">
           <option value="">ALL FORMATS</option>
           <option value="single_elimination">SINGLE ELIMINATION</option>
           <option value="double_elimination">DOUBLE ELIMINATION</option>
           <option value="round_robin">ROUND ROBIN</option>
         </select>
-      </div>
+      </section>
 
       {loading ? (
-        <p style={{ color: "rgba(255,255,255,0.4)" }}>Loading...</p>
+        <p className="text-white/45">Loading...</p>
       ) : tournaments.length === 0 ? (
-        <p style={{ color: "rgba(255,255,255,0.3)" }}>No tournaments found.</p>
+        <div className="rounded-[28px] border border-dashed border-violet-200/18 p-10 text-center text-white/40">No tournaments found.</div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
           {tournaments.map((t) => (
-            <Link
-              key={t.id}
-              to={`/tournaments/${t.id}`}
-              style={{
-                position: "relative",
-                padding: "20px",
-                background: "rgba(255,255,255,0.02)",
-                border: "1px solid rgba(255,255,255,0.07)",
-                textDecoration: "none",
-                color: "#fff",
-                transition: "border-color 0.2s, background 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(255,40,120,0.4)";
-                e.currentTarget.style.background = "rgba(255,40,120,0.04)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
-                e.currentTarget.style.background = "rgba(255,255,255,0.02)";
-              }}
-            >
-              <div style={{ position: "absolute", top: 0, left: 0, width: "8px", height: "8px", borderTop: "1px solid rgba(255,40,120,0.65)", borderLeft: "1px solid rgba(255,40,120,0.65)" }} />
-              <div style={{ position: "absolute", top: 0, right: 0, width: "8px", height: "8px", borderTop: "1px solid rgba(255,40,120,0.65)", borderRight: "1px solid rgba(255,40,120,0.65)" }} />
-              <div style={{ position: "absolute", bottom: 0, left: 0, width: "8px", height: "8px", borderBottom: "1px solid rgba(255,40,120,0.65)", borderLeft: "1px solid rgba(255,40,120,0.65)" }} />
-              <div style={{ position: "absolute", bottom: 0, right: 0, width: "8px", height: "8px", borderBottom: "1px solid rgba(255,40,120,0.65)", borderRight: "1px solid rgba(255,40,120,0.65)" }} />
-
-              <div style={{ fontSize: "10px", letterSpacing: "0.18em", color: "rgba(255,40,120,0.7)", marginBottom: "8px" }}>
-                {t.format.toUpperCase().replace(/_/g, " ")}
-              </div>
-              <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "12px", letterSpacing: "-0.3px" }}>{t.name}</h2>
-
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em" }}>
-                <span>MAX {t.max_teams} TEAMS</span>
-                <span style={{ color: "#ff2878" }}>${t.prize_pool ?? 0}</span>
-              </div>
-
-              <div style={{ marginTop: "12px" }}>
+            <Link key={t.id} to={`/tournaments/${t.id}`} className="group rounded-[28px] border border-cyan-200/12 bg-white/[0.035] p-5 text-white no-underline transition hover:border-cyan-200/35 hover:bg-cyan-200/[0.045]">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <span className="rounded-full border border-violet-200/14 bg-violet-300/8 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-violet-100/75">{t.format.replace(/_/g, " ")}</span>
                 <StatusBadge status={t.status} />
+              </div>
+              <h2 className="m-0 text-2xl font-black tracking-tight group-hover:text-cyan-50">{t.name}</h2>
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-white/8 bg-[#061423]/60 p-3"><p className="m-0 text-lg font-black">{t.max_teams}</p><p className="m-0 text-[10px] uppercase tracking-[0.18em] text-white/30">max teams</p></div>
+                <div className="rounded-2xl border border-white/8 bg-[#061423]/60 p-3"><p className="m-0 text-lg font-black text-cyan-100">${t.prize_pool ?? 0}</p><p className="m-0 text-[10px] uppercase tracking-[0.18em] text-white/30">prize pool</p></div>
               </div>
             </Link>
           ))}

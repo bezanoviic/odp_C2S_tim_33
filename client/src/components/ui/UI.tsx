@@ -2,26 +2,27 @@ import { type ReactNode } from "react";
 
 export function Spinner({ size = 16 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="animate-spin inline-block" style={{ color: "rgba(255,255,255,0.4)" }}>
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="40 60" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="animate-spin inline-block text-cyan-200/70">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="36 64" />
     </svg>
   );
 }
 
 export function Empty({ message = "No data" }: { message?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 gap-3">
-      <div className="w-12 h-12 rounded-full bg-white/3 border border-white/6 flex items-center justify-center">
-        <span className="text-white/20 text-lg">◦</span>
+    <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
+      <div className="relative flex h-16 w-16 items-center justify-center rounded-3xl border border-cyan-200/14 bg-cyan-200/5">
+        <span className="absolute h-9 w-9 rounded-2xl border border-violet-200/14" />
+        <span className="text-lg text-cyan-100/40">◇</span>
       </div>
-      <p className="text-sm text-white/25">{message}</p>
+      <p className="max-w-sm text-sm text-white/40">{message}</p>
     </div>
   );
 }
 
 export function ErrorBox({ message }: { message: string }) {
   return (
-    <div className="border border-red-500/20 bg-red-500/10 text-red-300 text-sm px-4 py-3 rounded-xl">
+    <div className="rounded-2xl border border-red-300/20 bg-red-400/10 px-4 py-3 text-sm text-red-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
       {message}
     </div>
   );
@@ -29,7 +30,7 @@ export function ErrorBox({ message }: { message: string }) {
 
 export function SuccessBox({ message }: { message: string }) {
   return (
-    <div className="border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 text-sm px-4 py-3 rounded-xl">
+    <div className="rounded-2xl border border-lime-300/20 bg-lime-300/10 px-4 py-3 text-sm text-lime-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
       {message}
     </div>
   );
@@ -37,35 +38,35 @@ export function SuccessBox({ message }: { message: string }) {
 
 export function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    upcoming: "bg-sky-500/10 text-sky-400 border-sky-500/20",
-    ongoing: "bg-indigo-500/10 text-indigo-300 border-indigo-500/20",
-    completed: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    cancelled: "bg-red-500/10 text-red-400 border-red-500/20",
-    pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-    confirmed: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    disqualified: "bg-red-500/10 text-red-400 border-red-500/20",
-    scheduled: "bg-sky-500/10 text-sky-400 border-sky-500/20",
-    in_progress: "bg-indigo-500/10 text-indigo-300 border-indigo-500/20",
-    accepted: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    rejected: "bg-red-500/10 text-red-400 border-red-500/20",
+    upcoming: "bg-cyan-300/10 text-cyan-100 border-cyan-200/20",
+    ongoing: "bg-violet-300/10 text-violet-100 border-violet-200/20",
+    completed: "bg-lime-300/10 text-lime-100 border-lime-200/20",
+    cancelled: "bg-red-400/10 text-red-100 border-red-300/20",
+    pending: "bg-amber-300/10 text-amber-100 border-amber-200/20",
+    confirmed: "bg-lime-300/10 text-lime-100 border-lime-200/20",
+    disqualified: "bg-red-400/10 text-red-100 border-red-300/20",
+    scheduled: "bg-cyan-300/10 text-cyan-100 border-cyan-200/20",
+    in_progress: "bg-violet-300/10 text-violet-100 border-violet-200/20",
+    accepted: "bg-lime-300/10 text-lime-100 border-lime-200/20",
+    rejected: "bg-red-400/10 text-red-100 border-red-300/20",
   };
   const dotStyles: Record<string, string> = {
-    upcoming: "bg-sky-400",
-    ongoing: "bg-indigo-300 animate-pulse",
-    completed: "bg-emerald-400",
-    cancelled: "bg-red-400",
-    pending: "bg-yellow-400",
-    confirmed: "bg-emerald-400",
-    disqualified: "bg-red-400",
-    scheduled: "bg-sky-400",
-    in_progress: "bg-indigo-300 animate-pulse",
-    accepted: "bg-emerald-400",
-    rejected: "bg-red-400",
+    upcoming: "bg-cyan-200",
+    ongoing: "bg-violet-200 animate-pulse",
+    completed: "bg-lime-200",
+    cancelled: "bg-red-300",
+    pending: "bg-amber-200",
+    confirmed: "bg-lime-200",
+    disqualified: "bg-red-300",
+    scheduled: "bg-cyan-200",
+    in_progress: "bg-violet-200 animate-pulse",
+    accepted: "bg-lime-200",
+    rejected: "bg-red-300",
   };
   const label = status.replace(/_/g, " ");
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border ${styles[status] ?? "bg-white/5 text-white/40 border-white/10"}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${dotStyles[status] ?? "bg-white/30"}`} />
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold capitalize ${styles[status] ?? "bg-white/5 text-white/45 border-white/10"}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${dotStyles[status] ?? "bg-white/35"}`} />
       {label}
     </span>
   );
@@ -73,12 +74,13 @@ export function StatusBadge({ status }: { status: string }) {
 
 export function NodeBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    healthy:  "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    degraded: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-    offline:  "bg-red-500/10 text-red-400 border-red-500/20",
+    healthy:  "bg-lime-300/10 text-lime-100 border-lime-200/20",
+    degraded: "bg-amber-300/10 text-amber-100 border-amber-200/20",
+    offline:  "bg-red-400/10 text-red-100 border-red-300/20",
+    unreachable: "bg-red-400/10 text-red-100 border-red-300/20",
   };
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border ${styles[status] ?? "bg-white/5 text-white/40 border-white/10"}`}>
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize ${styles[status] ?? "bg-white/5 text-white/45 border-white/10"}`}>
       {status}
     </span>
   );
@@ -86,8 +88,8 @@ export function NodeBadge({ status }: { status: string }) {
 
 export function RoleBadge({ role }: { role: string }) {
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border ${
-      role === "admin" ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : "bg-white/5 text-white/40 border-white/10"
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold capitalize ${
+      role === "admin" ? "bg-amber-300/10 text-amber-100 border-amber-200/20" : "bg-cyan-300/10 text-cyan-100 border-cyan-200/20"
     }`}>{role}</span>
   );
 }
@@ -96,31 +98,33 @@ export function Pagination({ page, total, pageSize, onChange }: { page: number; 
   const totalPages = Math.ceil(total / pageSize);
   if (totalPages <= 1) return null;
   return (
-    <div className="flex items-center gap-3 mt-5 text-xs text-white/30">
+    <div className="mt-6 flex items-center gap-3 text-xs text-white/42">
       <button disabled={page <= 1} onClick={() => onChange(page - 1)}
-        className="px-3 py-1.5 border border-white/10 rounded-lg hover:border-white/20 disabled:opacity-30 transition-colors">←</button>
-      <span className="font-mono">{page} / {totalPages}</span>
+        className="rounded-xl border border-cyan-200/12 px-3 py-2 transition hover:border-cyan-200/30 disabled:opacity-30">←</button>
+      <span className="font-mono text-cyan-100/70">{page} / {totalPages}</span>
       <button disabled={page >= totalPages} onClick={() => onChange(page + 1)}
-        className="px-3 py-1.5 border border-white/10 rounded-lg hover:border-white/20 disabled:opacity-30 transition-colors">→</button>
-      <span className="text-white/20">{total} total</span>
+        className="rounded-xl border border-cyan-200/12 px-3 py-2 transition hover:border-cyan-200/30 disabled:opacity-30">→</button>
+      <span className="text-white/28">{total} total</span>
     </div>
   );
 }
 
 export function StatCard({ label, value, sub, color }: { label: string; value: string | number; sub?: string; color?: string }) {
   return (
-    <div className="bg-white/3 border border-white/6 rounded-2xl p-5 flex flex-col gap-2 hover:border-white/10 transition-colors">
-      <p className="text-xs text-white/30 uppercase tracking-widest font-mono">{label}</p>
-      <p className={`text-2xl font-semibold tracking-tight ${color ?? "text-white"}`}>{value}</p>
-      {sub && <p className="text-xs text-white/25">{sub}</p>}
+    <div className="pg-card p-5 transition hover:-translate-y-0.5 hover:border-cyan-200/30">
+      <p className="mb-2 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-100/45">{label}</p>
+      <p className={`text-3xl font-black tracking-tight ${color ?? "text-white"}`}>{value}</p>
+      {sub && <p className="mt-2 text-xs text-white/34">{sub}</p>}
     </div>
   );
 }
 
 export function Table({ children }: { children: ReactNode }) {
   return (
-    <div className="bg-white/2 border border-white/6 rounded-2xl overflow-hidden">
-      <table className="w-full text-sm">{children}</table>
+    <div className="overflow-hidden rounded-3xl border border-cyan-200/12 bg-[#06111f]/45 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">{children}</table>
+      </div>
     </div>
   );
 }
@@ -128,9 +132,9 @@ export function Table({ children }: { children: ReactNode }) {
 export function TableHead({ columns }: { columns: string[] }) {
   return (
     <thead>
-      <tr className="border-b border-white/6">
+      <tr className="border-b border-cyan-200/10 bg-cyan-200/[0.025]">
         {columns.map((c) => (
-          <th key={c} className="text-left px-5 py-3.5 text-xs text-white/25 font-mono uppercase tracking-wider">{c}</th>
+          <th key={c} className="px-5 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-cyan-100/42">{c}</th>
         ))}
       </tr>
     </thead>
@@ -139,12 +143,15 @@ export function TableHead({ columns }: { columns: string[] }) {
 
 export function PageHeader({ eyebrow, title, action }: { eyebrow: string; title: string; action?: ReactNode }) {
   return (
-    <div className="flex items-start justify-between mb-8">
+    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p className="text-xs text-white/25 font-mono uppercase tracking-widest mb-1">{eyebrow}</p>
-        <h1 className="text-xl font-semibold text-white tracking-tight">{title}</h1>
+        <div className="mb-3 flex items-center gap-3">
+          <span className="h-px w-8 bg-cyan-200/45" />
+          <p className="m-0 text-[10px] font-black uppercase tracking-[0.26em] text-cyan-100/52">{eyebrow}</p>
+        </div>
+        <h1 className="m-0 text-3xl font-black tracking-tight text-white sm:text-4xl">{title}</h1>
       </div>
-      {action && <div>{action}</div>}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }
