@@ -5,7 +5,7 @@ import { TournamentsAPIService } from "../../api_services/tournaments/Tournament
 import { gamesApi } from "../../api_services/games/GamesAPIService";
 import type { GameDto } from "../../models/game/GameTypes";
 
-const ACCENT = "#ff2878";
+const ACCENT = "#4ee7ff";
 const GRID_LINES = [1, 2, 3, 4, 5, 6, 7];
 
 const inputStyle: React.CSSProperties = {
@@ -100,13 +100,13 @@ export default function AdminTournamentCreatePage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#06040f", fontFamily: "Inter,Arial,sans-serif", color: "#fff", position: "relative", overflow: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: "#07111f", fontFamily: "Inter,Arial,sans-serif", color: "#fff", position: "relative", overflow: "hidden" }}>
       {GRID_LINES.map(i => <div key={`h${i}`} style={{ position: "fixed", left: 0, right: 0, top: `${i * 100 / 8}%`, height: "1px", background: "rgba(255,255,255,0.03)", pointerEvents: "none" }} />)}
       {GRID_LINES.map(i => <div key={`v${i}`} style={{ position: "fixed", top: 0, bottom: 0, left: `${i * 100 / 8}%`, width: "1px", background: "rgba(255,255,255,0.03)", pointerEvents: "none" }} />)}
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: "760px", margin: "0 auto", padding: "56px 32px 60px" }}>
-        <div style={{ fontSize: "10px", letterSpacing: "0.28em", color: "rgba(255,40,120,0.7)", marginBottom: "12px", display: "flex", alignItems: "center", gap: "10px" }}>
-          <span style={{ display: "inline-block", width: "20px", height: "1px", background: "rgba(255,40,120,0.6)" }} />
+        <div style={{ fontSize: "10px", letterSpacing: "0.28em", color: "rgba(78,231,255,0.7)", marginBottom: "12px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{ display: "inline-block", width: "20px", height: "1px", background: "rgba(78,231,255,0.6)" }} />
           ARENA / TOURNAMENTS / CREATE
         </div>
         <h1 style={{ fontSize: "34px", fontWeight: 800, letterSpacing: "-0.5px", margin: "0 0 30px" }}>
@@ -114,8 +114,8 @@ export default function AdminTournamentCreatePage() {
         </h1>
 
         <div style={{ position: "relative", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "28px 32px" }}>
-          <span style={{ position: "absolute", top: 0, right: 0, width: "10px", height: "10px", borderTop: "1px solid rgba(255,40,120,0.55)", borderRight: "1px solid rgba(255,40,120,0.55)" }} />
-          <span style={{ position: "absolute", bottom: 0, left: 0, width: "10px", height: "10px", borderBottom: "1px solid rgba(255,40,120,0.55)", borderLeft: "1px solid rgba(255,40,120,0.55)" }} />
+          <span style={{ position: "absolute", top: 0, right: 0, width: "10px", height: "10px", borderTop: "1px solid rgba(78,231,255,0.55)", borderRight: "1px solid rgba(78,231,255,0.55)" }} />
+          <span style={{ position: "absolute", bottom: 0, left: 0, width: "10px", height: "10px", borderBottom: "1px solid rgba(78,231,255,0.55)", borderLeft: "1px solid rgba(78,231,255,0.55)" }} />
 
           {error && (
             <div style={{ marginBottom: "18px", padding: "12px 14px", border: "1px solid rgba(255,80,80,0.25)", background: "rgba(255,80,80,0.06)", color: "rgba(255,130,130,0.9)", fontSize: "12px" }}>
@@ -175,8 +175,8 @@ export default function AdminTournamentCreatePage() {
               style={{
                 marginTop: "10px",
                 padding: "15px",
-                background: "rgba(255,40,120,0.1)",
-                border: "1px solid rgba(255,40,120,0.45)",
+                background: "rgba(78,231,255,0.1)",
+                border: "1px solid rgba(78,231,255,0.45)",
                 color: ACCENT,
                 fontSize: "12px",
                 fontWeight: 700,

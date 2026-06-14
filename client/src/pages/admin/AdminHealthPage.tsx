@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { healthApi } from "../../api_services/health/HealthAPIService";
 import type { DbNodeStatus, ApiNodeStatus } from "../../api_services/health/HealthAPIService";
 
-const ACCENT = "#ff2878";
+const ACCENT = "#4ee7ff";
 
 const corners: React.CSSProperties[] = [
   { top:"36px", left:"36px",  borderWidth:"1px 0 0 1px" },
@@ -48,16 +48,16 @@ export default function AdminHealthPage() {
   const systemOk = allStatuses.length > 0 && allStatuses.every(s => s === "healthy");
 
   return (
-    <div style={{ minHeight:"100vh", background:"#06040f", fontFamily:"Inter,Arial,sans-serif", position:"relative", overflow:"hidden" }}>
+    <div style={{ minHeight:"100vh", background:"#07111f", fontFamily:"Inter,Arial,sans-serif", position:"relative", overflow:"hidden" }}>
       {[1,2,3,4,5,6,7].map(i => <div key={`h${i}`} style={{ position:"fixed", left:0, right:0, top:`${i*100/8}%`, height:"1px", background:"rgba(255,255,255,0.03)", pointerEvents:"none" }} />)}
       {[1,2,3,4,5,6,7].map(i => <div key={`v${i}`} style={{ position:"fixed", top:0, bottom:0, left:`${i*100/8}%`, width:"1px", background:"rgba(255,255,255,0.03)", pointerEvents:"none" }} />)}
-      {corners.map((pos, i) => <div key={i} style={{ position:"fixed", width:"14px", height:"14px", borderColor:"rgba(255,40,120,0.35)", borderStyle:"solid", ...pos, pointerEvents:"none" }} />)}
+      {corners.map((pos, i) => <div key={i} style={{ position:"fixed", width:"14px", height:"14px", borderColor:"rgba(78,231,255,0.35)", borderStyle:"solid", ...pos, pointerEvents:"none" }} />)}
 
       <div style={{ position:"relative", zIndex:1, maxWidth:"900px", margin:"0 auto", padding:"56px 32px 60px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:"40px" }}>
           <div>
-            <div style={{ fontSize:"10px", letterSpacing:"0.28em", color:"rgba(255,40,120,0.7)", marginBottom:"10px", display:"flex", alignItems:"center", gap:"10px" }}>
-              <span style={{ display:"inline-block", width:"20px", height:"1px", background:"rgba(255,40,120,0.6)" }} />
+            <div style={{ fontSize:"10px", letterSpacing:"0.28em", color:"rgba(78,231,255,0.7)", marginBottom:"10px", display:"flex", alignItems:"center", gap:"10px" }}>
+              <span style={{ display:"inline-block", width:"20px", height:"1px", background:"rgba(78,231,255,0.6)" }} />
               ADMIN / HEALTH
             </div>
             <h1 style={{ fontSize:"30px", fontWeight:800, color:"#fff", letterSpacing:"-0.5px", margin:0 }}>
@@ -67,7 +67,7 @@ export default function AdminHealthPage() {
           <div style={{ textAlign:"right" }}>
             <button onClick={handleRefresh} disabled={refreshing}
               style={{ padding:"10px 20px", background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.1)", color:"rgba(255,255,255,0.5)", fontSize:"11px", letterSpacing:"0.14em", cursor:refreshing?"not-allowed":"pointer", fontFamily:"inherit", display:"block", width:"100%", marginBottom:"6px" }}
-              onMouseEnter={e => { if(!refreshing) e.currentTarget.style.borderColor="rgba(255,40,120,0.4)"; }}
+              onMouseEnter={e => { if(!refreshing) e.currentTarget.style.borderColor="rgba(78,231,255,0.4)"; }}
               onMouseLeave={e => e.currentTarget.style.borderColor="rgba(255,255,255,0.1)"}>
               {refreshing ? "REFRESHING..." : "↺ REFRESH"}
             </button>
@@ -96,7 +96,7 @@ export default function AdminHealthPage() {
                     {nodes.map((node) => (
                       <div key={node.name}
                         style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", padding:"16px 20px", display:"grid", gridTemplateColumns:"1fr auto", alignItems:"center", transition:"border-color 0.2s" }}
-                        onMouseEnter={e => e.currentTarget.style.borderColor="rgba(255,40,120,0.2)"}
+                        onMouseEnter={e => e.currentTarget.style.borderColor="rgba(78,231,255,0.2)"}
                         onMouseLeave={e => e.currentTarget.style.borderColor="rgba(255,255,255,0.06)"}>
                         <div style={{ display:"flex", alignItems:"center", gap:"14px" }}>
                           <div style={{ width:"8px", height:"8px", borderRadius:"50%", background:statusDot(node.status), flexShrink:0, animation: node.status === "healthy" ? "blink 2.5s infinite" : "none" }} />

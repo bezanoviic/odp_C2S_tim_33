@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { auditApi } from "../../api_services/audit/AuditAPIService";
 import type { AuditLogDto } from "../../api_services/audit/AuditAPIService";
 
-const ACCENT = "#ff2878";
+const ACCENT = "#4ee7ff";
 const LIMIT = 20;
 
 const ACTION_COLOR: Record<string, string> = {
@@ -62,15 +62,15 @@ useEffect(() => {
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 
   return (
-    <div style={{ minHeight:"100vh", background:"#06040f", fontFamily:"Inter,Arial,sans-serif", position:"relative", overflow:"hidden" }}>
+    <div style={{ minHeight:"100vh", background:"#07111f", fontFamily:"Inter,Arial,sans-serif", position:"relative", overflow:"hidden" }}>
       {[1,2,3,4,5,6,7].map(i => <div key={`h${i}`} style={{ position:"fixed", left:0, right:0, top:`${i*100/8}%`, height:"1px", background:"rgba(255,255,255,0.03)", pointerEvents:"none" }} />)}
       {[1,2,3,4,5,6,7].map(i => <div key={`v${i}`} style={{ position:"fixed", top:0, bottom:0, left:`${i*100/8}%`, width:"1px", background:"rgba(255,255,255,0.03)", pointerEvents:"none" }} />)}
-      {corners.map((pos, i) => <div key={i} style={{ position:"fixed", width:"14px", height:"14px", borderColor:"rgba(255,40,120,0.35)", borderStyle:"solid", ...pos, pointerEvents:"none" }} />)}
+      {corners.map((pos, i) => <div key={i} style={{ position:"fixed", width:"14px", height:"14px", borderColor:"rgba(78,231,255,0.35)", borderStyle:"solid", ...pos, pointerEvents:"none" }} />)}
 
       <div style={{ position:"relative", zIndex:1, maxWidth:"960px", margin:"0 auto", padding:"56px 32px 60px" }}>
         <div style={{ marginBottom:"40px" }}>
-          <div style={{ fontSize:"10px", letterSpacing:"0.28em", color:"rgba(255,40,120,0.7)", marginBottom:"10px", display:"flex", alignItems:"center", gap:"10px" }}>
-            <span style={{ display:"inline-block", width:"20px", height:"1px", background:"rgba(255,40,120,0.6)" }} />
+          <div style={{ fontSize:"10px", letterSpacing:"0.28em", color:"rgba(78,231,255,0.7)", marginBottom:"10px", display:"flex", alignItems:"center", gap:"10px" }}>
+            <span style={{ display:"inline-block", width:"20px", height:"1px", background:"rgba(78,231,255,0.6)" }} />
             ADMIN / AUDIT
           </div>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
@@ -81,7 +81,7 @@ useEffect(() => {
           </div>
         </div>
 
-        <div style={{ height:"1px", background:"rgba(255,40,120,0.15)", marginBottom:"28px" }} />
+        <div style={{ height:"1px", background:"rgba(78,231,255,0.15)", marginBottom:"28px" }} />
 
         <div style={{ display:"flex", flexWrap:"wrap", gap:"12px", marginBottom:"24px" }}>
           {Object.entries(ACTION_COLOR).map(([action, color]) => (
@@ -105,7 +105,7 @@ useEffect(() => {
           {logs.map((log, idx) => (
             <div key={log.id}
               style={{ display:"grid", gridTemplateColumns:"36px 1fr 110px 80px 1fr 140px", gap:"0 16px", padding:"12px 16px", background:"rgba(255,255,255,0.015)", borderLeft:"2px solid transparent", transition:"border-color 0.15s, background 0.15s" }}
-              onMouseEnter={e => { e.currentTarget.style.background="rgba(255,40,120,0.04)"; e.currentTarget.style.borderLeftColor="rgba(255,40,120,0.4)"; }}
+              onMouseEnter={e => { e.currentTarget.style.background="rgba(78,231,255,0.04)"; e.currentTarget.style.borderLeftColor="rgba(78,231,255,0.4)"; }}
               onMouseLeave={e => { e.currentTarget.style.background="rgba(255,255,255,0.015)"; e.currentTarget.style.borderLeftColor="transparent"; }}>
               <span style={{ fontFamily:"monospace", fontSize:"11px", color:"rgba(255,255,255,0.2)" }}>{(page-1)*LIMIT + idx + 1}</span>
               <span style={{ fontSize:"12px", fontWeight:600, color:actionColor(log.action), letterSpacing:"0.05em" }}>{log.action}</span>
@@ -113,7 +113,7 @@ useEffect(() => {
               <span style={{ fontSize:"12px", fontFamily:"monospace", color:"rgba(255,255,255,0.25)" }}>#{log.entity_id ?? "—"}</span>
               <div>
                 {log.details && <div style={{ fontSize:"12px", color:"rgba(255,255,255,0.45)" }}>{log.details}</div>}
-                <div style={{ fontSize:"11px", color:"rgba(255,40,120,0.5)", marginTop:"2px" }}>by {log.gamer_tag ?? "system"}</div>
+                <div style={{ fontSize:"11px", color:"rgba(78,231,255,0.5)", marginTop:"2px" }}>by {log.gamer_tag ?? "system"}</div>
               </div>
               <span style={{ fontSize:"11px", fontFamily:"monospace", color:"rgba(255,255,255,0.2)" }}>{formatDate(log.created_at)}</span>
             </div>

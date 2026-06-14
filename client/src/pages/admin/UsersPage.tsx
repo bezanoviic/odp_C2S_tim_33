@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { usersApi } from "../../api_services/users/UsersAPIService";
 import type { UserDto } from "../../models/user/UserTypes";
 
-const ACCENT = "#ff2878";
+const ACCENT = "#4ee7ff";
 
 const corners: React.CSSProperties[] = [
   { top:"36px", left:"36px",  borderWidth:"1px 0 0 1px" },
@@ -14,7 +14,7 @@ const corners: React.CSSProperties[] = [
 function RoleBadge({ role }: { role: string }) {
   const isAdmin = role === "admin";
   return (
-    <span style={{ display:"inline-flex", alignItems:"center", padding:"3px 10px", border: isAdmin ? "1px solid rgba(255,40,120,0.4)" : "1px solid rgba(255,255,255,0.1)", background: isAdmin ? "rgba(255,40,120,0.08)" : "rgba(255,255,255,0.03)", color: isAdmin ? ACCENT : "rgba(255,255,255,0.4)", fontSize:"10px", letterSpacing:"0.14em", fontWeight:600 }}>
+    <span style={{ display:"inline-flex", alignItems:"center", padding:"3px 10px", border: isAdmin ? "1px solid rgba(78,231,255,0.4)" : "1px solid rgba(255,255,255,0.1)", background: isAdmin ? "rgba(78,231,255,0.08)" : "rgba(255,255,255,0.03)", color: isAdmin ? ACCENT : "rgba(255,255,255,0.4)", fontSize:"10px", letterSpacing:"0.14em", fontWeight:600 }}>
       {role.toUpperCase()}
     </span>
   );
@@ -51,16 +51,16 @@ export default function UsersPage() {
   );
 
   return (
-    <div style={{ minHeight:"100vh", background:"#06040f", fontFamily:"Inter,Arial,sans-serif", position:"relative", overflow:"hidden" }}>
+    <div style={{ minHeight:"100vh", background:"#07111f", fontFamily:"Inter,Arial,sans-serif", position:"relative", overflow:"hidden" }}>
       {[1,2,3,4,5,6,7].map(i => <div key={`h${i}`} style={{ position:"fixed", left:0, right:0, top:`${i*100/8}%`, height:"1px", background:"rgba(255,255,255,0.03)", pointerEvents:"none" }} />)}
       {[1,2,3,4,5,6,7].map(i => <div key={`v${i}`} style={{ position:"fixed", top:0, bottom:0, left:`${i*100/8}%`, width:"1px", background:"rgba(255,255,255,0.03)", pointerEvents:"none" }} />)}
-      {corners.map((pos, i) => <div key={i} style={{ position:"fixed", width:"14px", height:"14px", borderColor:"rgba(255,40,120,0.35)", borderStyle:"solid", ...pos, pointerEvents:"none" }} />)}
+      {corners.map((pos, i) => <div key={i} style={{ position:"fixed", width:"14px", height:"14px", borderColor:"rgba(78,231,255,0.35)", borderStyle:"solid", ...pos, pointerEvents:"none" }} />)}
 
       <div style={{ position:"relative", zIndex:1, maxWidth:"960px", margin:"0 auto", padding:"56px 32px 60px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:"40px" }}>
           <div>
-            <div style={{ fontSize:"10px", letterSpacing:"0.28em", color:"rgba(255,40,120,0.7)", marginBottom:"10px", display:"flex", alignItems:"center", gap:"10px" }}>
-              <span style={{ display:"inline-block", width:"20px", height:"1px", background:"rgba(255,40,120,0.6)" }} />
+            <div style={{ fontSize:"10px", letterSpacing:"0.28em", color:"rgba(78,231,255,0.7)", marginBottom:"10px", display:"flex", alignItems:"center", gap:"10px" }}>
+              <span style={{ display:"inline-block", width:"20px", height:"1px", background:"rgba(78,231,255,0.6)" }} />
               ADMIN / USERS
             </div>
             <h1 style={{ fontSize:"30px", fontWeight:800, color:"#fff", letterSpacing:"-0.5px", margin:0 }}>
@@ -68,18 +68,18 @@ export default function UsersPage() {
             </h1>
           </div>
           <div style={{ textAlign:"right" }}>
-            <div style={{ fontFamily:"monospace", fontSize:"13px", color:"rgba(255,40,120,0.6)", marginBottom:"4px" }}>{users.length}</div>
+            <div style={{ fontFamily:"monospace", fontSize:"13px", color:"rgba(78,231,255,0.6)", marginBottom:"4px" }}>{users.length}</div>
             <div style={{ fontSize:"10px", letterSpacing:"0.12em", color:"rgba(255,255,255,0.2)" }}>TOTAL USERS</div>
           </div>
         </div>
 
-        <div style={{ height:"1px", background:"rgba(255,40,120,0.15)", marginBottom:"28px" }} />
+        <div style={{ height:"1px", background:"rgba(78,231,255,0.15)", marginBottom:"28px" }} />
 
         <div style={{ marginBottom:"24px" }}>
           <div style={{ fontSize:"10px", letterSpacing:"0.18em", color:"rgba(255,255,255,0.25)", marginBottom:"8px" }}>SEARCH</div>
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="username, email or role..."
             style={{ width:"100%", background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:0, padding:"12px 16px", color:"#fff", fontSize:"13px", outline:"none", fontFamily:"inherit", boxSizing:"border-box" }}
-            onFocus={e => e.target.style.borderColor="rgba(255,40,120,0.4)"}
+            onFocus={e => e.target.style.borderColor="rgba(78,231,255,0.4)"}
             onBlur={e => e.target.style.borderColor="rgba(255,255,255,0.08)"} />
         </div>
 
@@ -98,7 +98,7 @@ export default function UsersPage() {
               {filtered.map((u) => (
                 <div key={u.id}
                   style={{ display:"grid", gridTemplateColumns:"40px 1fr 1fr 100px 90px", gap:"0 16px", padding:"14px 16px", background:"rgba(255,255,255,0.015)", borderLeft:"2px solid transparent", transition:"border-color 0.15s, background 0.15s" }}
-                  onMouseEnter={e => { e.currentTarget.style.background="rgba(255,40,120,0.035)"; e.currentTarget.style.borderLeftColor="rgba(255,40,120,0.4)"; }}
+                  onMouseEnter={e => { e.currentTarget.style.background="rgba(78,231,255,0.035)"; e.currentTarget.style.borderLeftColor="rgba(78,231,255,0.4)"; }}
                   onMouseLeave={e => { e.currentTarget.style.background="rgba(255,255,255,0.015)"; e.currentTarget.style.borderLeftColor="transparent"; }}>
                   <span style={{ fontFamily:"monospace", fontSize:"11px", color:"rgba(255,255,255,0.2)" }}>{u.id}</span>
                   <span style={{ fontSize:"13px", color:"#fff", fontWeight:500 }}>{u.gamer_tag}</span>

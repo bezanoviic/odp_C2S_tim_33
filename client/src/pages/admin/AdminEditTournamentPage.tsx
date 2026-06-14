@@ -91,11 +91,11 @@ export default function AdminTournamentEditPage() {
 
   return (
     <div style={{ padding: "32px", fontFamily: "Inter,Arial,sans-serif", color: "#fff", maxWidth: "720px" }}>
-      <div style={{ fontSize: "10px", letterSpacing: "0.22em", color: "rgba(255,40,120,0.7)", marginBottom: "12px" }}>
+      <div style={{ fontSize: "10px", letterSpacing: "0.22em", color: "rgba(78,231,255,0.7)", marginBottom: "12px" }}>
         ARENA / TOURNAMENTS / EDIT
       </div>
       <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "24px" }}>
-        Edit Tournament<span style={{ color: "rgba(255,40,120,0.9)" }}>.</span>
+        Edit Tournament<span style={{ color: "rgba(78,231,255,0.9)" }}>.</span>
       </h1>
 
       {error && (
@@ -161,9 +161,9 @@ export default function AdminTournamentEditPage() {
           style={{
             marginTop: "12px",
             padding: "14px",
-            background: "rgba(255,40,120,0.08)",
-            border: "1px solid rgba(255,40,120,0.4)",
-            color: "#ff2878",
+            background: "rgba(78,231,255,0.08)",
+            border: "1px solid rgba(78,231,255,0.4)",
+            color: "#4ee7ff",
             fontSize: "12px",
             fontWeight: 700,
             letterSpacing: "0.24em",

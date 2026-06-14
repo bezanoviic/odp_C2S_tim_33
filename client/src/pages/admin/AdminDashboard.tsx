@@ -1,125 +1,102 @@
 import { useNavigate } from "react-router-dom";
+import { PageHeader, StatCard } from "../../components/ui/UI";
 
-const ACCENT = "#ff2878";
-const GRID_LINES = [1,2,3,4,5,6,7];
-
-const SECTIONS = [
+const sections = [
   {
-    key: "games",
-    label: "GAMES",
-    sub: "Manage titles & genres",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff2878" strokeWidth="1.5">
-        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 4 0v2"/>
-        <line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>
-      </svg>
-    ),
+    label: "Games",
+    value: "Catalog",
+    sub: "Add titles, genres and team sizes",
     path: "/admin/games",
   },
   {
-    key: "tournament",
-    label: "NEW TOURNAMENT",
-    sub: "Create & configure brackets",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff2878" strokeWidth="1.5">
-        <circle cx="18" cy="5" r="3"/><circle cx="18" cy="19" r="3"/><circle cx="6" cy="12" r="3"/>
-        <path d="M6 15v1a6 6 0 0 0 6 6h0M6 9V8a6 6 0 0 1 6-6h6"/>
-      </svg>
-    ),
-    path: "/admin/tournaments/new",
-  },
-  {
-    key: "users",
-    label: "USERS",
-    sub: "Roles, accounts, access",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff2878" strokeWidth="1.5">
-        <circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.87"/>
-      </svg>
-    ),
+    label: "Users",
+    value: "Access",
+    sub: "Review accounts and change roles",
     path: "/admin/users",
   },
   {
-    key: "health",
-    label: "HEALTH",
-    sub: "DB nodes & API instances",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff2878" strokeWidth="1.5">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-      </svg>
-    ),
+    label: "Tournaments",
+    value: "Create",
+    sub: "Configure dates, brackets and prizes",
+    path: "/admin/tournaments/new",
+  },
+  {
+    label: "Registrations",
+    value: "Queue",
+    sub: "Confirm, reject or disqualify teams",
+    path: "/admin/registrations",
+  },
+  {
+    label: "Health",
+    value: "Nodes",
+    sub: "Watch API and database availability",
     path: "/admin/health",
   },
   {
-    key: "audit",
-    label: "AUDIT LOG",
-    sub: "Activity trail & events",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff2878" strokeWidth="1.5">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>
-      </svg>
-    ),
+    label: "Audit",
+    value: "Logs",
+    sub: "Track important platform events",
     path: "/admin/audit",
   },
 ];
 
-const corners: React.CSSProperties[] = [
-  { top:"36px", left:"36px",  borderWidth:"1px 0 0 1px" },
-  { top:"36px", right:"36px", borderWidth:"1px 1px 0 0" },
-  { bottom:"32px", left:"36px",  borderWidth:"0 0 1px 1px" },
-  { bottom:"32px", right:"36px", borderWidth:"0 1px 1px 0" },
+const quickStats = [
+  { label: "Control mode", value: "Admin", sub: "Role-based access enabled" },
+  { label: "Stack", value: "C2S", sub: "React · Express · MySQL" },
+  { label: "Status", value: "Live", sub: "Use health tab for node details", color: "text-cyan-100" },
 ];
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  return (
-    <div style={{ minHeight:"100vh", background:"#06040f", fontFamily:"Inter,Arial,sans-serif", position:"relative", overflow:"hidden" }}>
-      {GRID_LINES.map(i => <div key={`h${i}`} style={{ position:"fixed", left:0, right:0, top:`${i*100/8}%`, height:"1px", background:"rgba(255,255,255,0.03)", pointerEvents:"none" }} />)}
-      {GRID_LINES.map(i => <div key={`v${i}`} style={{ position:"fixed", top:0, bottom:0, left:`${i*100/8}%`, width:"1px", background:"rgba(255,255,255,0.03)", pointerEvents:"none" }} />)}
-      {corners.map((pos, i) => <div key={i} style={{ position:"fixed", width:"14px", height:"14px", borderColor:"rgba(255,40,120,0.35)", borderStyle:"solid", ...pos, pointerEvents:"none" }} />)}
 
-      <div style={{ position:"relative", zIndex:1, maxWidth:"900px", margin:"0 auto", padding:"56px 32px 60px" }}>
-        <div style={{ marginBottom:"48px" }}>
-          <div style={{ fontSize:"10px", letterSpacing:"0.28em", color:"rgba(255,40,120,0.7)", marginBottom:"12px", display:"flex", alignItems:"center", gap:"10px" }}>
-            <span style={{ display:"inline-block", width:"20px", height:"1px", background:"rgba(255,40,120,0.6)" }} />
-            ADMIN CONTROL
-          </div>
-          <h1 style={{ fontSize:"36px", fontWeight:800, color:"#fff", letterSpacing:"-1px", lineHeight:1.1, margin:0 }}>
-            Admin<br/><span style={{ color:ACCENT }}>Dashboard.</span>
-          </h1>
-          <p style={{ marginTop:"12px", fontSize:"13px", color:"rgba(255,255,255,0.28)", lineHeight:1.7 }}>
-            Full control over the platform — games, tournaments, users, health, audit trail.
-          </p>
+  return (
+    <div>
+      <PageHeader eyebrow="Admin control" title="Command overview" />
+
+      <div className="mb-8 grid gap-4 md:grid-cols-3">
+        {quickStats.map((stat) => (
+          <StatCard key={stat.label} {...stat} />
+        ))}
+      </div>
+
+      <section className="pg-card overflow-hidden">
+        <div className="border-b border-cyan-200/10 bg-cyan-200/[0.025] px-5 py-4">
+          <p className="m-0 text-[10px] font-black uppercase tracking-[0.24em] text-cyan-100/50">Admin modules</p>
         </div>
 
-        <div style={{ height:"1px", background:"rgba(255,40,120,0.15)", marginBottom:"40px" }} />
-
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(240px, 1fr))", gap:"16px" }}>
-          {SECTIONS.map((sec) => (
-            <button key={sec.key} onClick={() => navigate(sec.path)}
-              style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:0, padding:"24px 22px", textAlign:"left", cursor:"pointer", transition:"border-color 0.2s, background 0.2s", position:"relative" }}
-              onMouseEnter={e => { e.currentTarget.style.background="rgba(255,40,120,0.05)"; e.currentTarget.style.borderColor="rgba(255,40,120,0.4)"; }}
-              onMouseLeave={e => { e.currentTarget.style.background="rgba(255,255,255,0.02)"; e.currentTarget.style.borderColor="rgba(255,255,255,0.07)"; }}
+        <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-3">
+          {sections.map((section, index) => (
+            <button
+              key={section.path}
+              onClick={() => navigate(section.path)}
+              className="group rounded-[24px] border border-cyan-200/12 bg-[#06111f]/58 p-5 text-left transition hover:-translate-y-0.5 hover:border-cyan-200/35 hover:bg-cyan-200/[0.045]"
             >
-              <span style={{ position:"absolute", top:0, right:0, width:"8px", height:"8px", borderTop:"1px solid rgba(255,40,120,0.5)", borderRight:"1px solid rgba(255,40,120,0.5)" }} />
-              <span style={{ position:"absolute", bottom:0, left:0, width:"8px", height:"8px", borderBottom:"1px solid rgba(255,40,120,0.5)", borderLeft:"1px solid rgba(255,40,120,0.5)" }} />
-              <div style={{ marginBottom:"16px" }}>{sec.icon}</div>
-              <div style={{ fontSize:"11px", letterSpacing:"0.2em", color:ACCENT, marginBottom:"6px" }}>{sec.label}</div>
-              <div style={{ fontSize:"13px", color:"rgba(255,255,255,0.5)", lineHeight:1.5 }}>{sec.sub}</div>
+              <div className="mb-6 flex items-center justify-between gap-4">
+                <span className="rounded-full border border-cyan-200/15 bg-cyan-200/8 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-100/55">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="h-2 w-2 rounded-full bg-cyan-200/70 shadow-[0_0_18px_rgba(78,231,255,0.65)] transition group-hover:bg-white" />
+              </div>
+              <p className="mb-1 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-100/42">{section.label}</p>
+              <h2 className="m-0 text-2xl font-black tracking-tight text-white">{section.value}</h2>
+              <p className="mt-3 min-h-10 text-sm leading-6 text-white/42">{section.sub}</p>
             </button>
           ))}
         </div>
+      </section>
 
-        <div style={{ marginTop:"48px", padding:"14px 20px", border:"1px solid rgba(255,255,255,0.06)", background:"rgba(255,255,255,0.01)", display:"flex", alignItems:"center", gap:"10px" }}>
-          <div style={{ width:"6px", height:"6px", borderRadius:"50%", background:ACCENT, animation:"blink 1.8s infinite" }} />
-          <span style={{ fontSize:"10px", letterSpacing:"0.14em", color:"rgba(255,255,255,0.3)" }}>ADMIN SESSION ACTIVE</span>
-          <span style={{ fontSize:"10px", letterSpacing:"0.1em", color:"rgba(255,40,120,0.45)", marginLeft:"auto", fontFamily:"monospace" }}>SYS.CTRL // C2S</span>
+      <div className="mt-8 rounded-[26px] border border-cyan-200/12 bg-cyan-200/[0.035] p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="m-0 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-100/50">Session</p>
+            <p className="mt-2 text-sm text-white/48">Admin tools now use the same blue control-panel style as the rest of the project.</p>
+          </div>
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-lime-300/20 bg-lime-300/8 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-lime-100/80">
+            <span className="h-2 w-2 rounded-full bg-lime-200 shadow-[0_0_18px_rgba(185,255,102,0.65)]" />
+            admin online
+          </span>
         </div>
       </div>
-      <style>{`@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}`}</style>
     </div>
   );
 }
